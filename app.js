@@ -1,63 +1,88 @@
 var request = require('request')
-var debug = require('debug')('rs')
+var debug = {
+    log: require('debug')('rs'),
+    http: require('debug')('rs.http')
+}
 var async = require('async')
 var promclient = require('prometheus-client')
-
-var host = process.env.RANCHER_HOST
-var port = process.env.RANCHER_PORT || 8080
-var username = process.env.RANCHER_API_ACCESS_KEY
-var password = process.env.RANCHER_API_SECRET_KEY
 
 process.on('SIGTERM', function () {
     process.exit(0);
 });
 
-if (!host || !username || !password) {
-    console.error('Missing parameters for host, username or password')
-    process.exit(1)
-}
+var opts = getOptions()
+createServer(opts.host, opts.port, opts.listen_port, opts.update_interval)
 
-var client = new promclient()
-var gauges = {}
-
-function createGauge(name) {
-    gauges[name] = client.newGauge({
-        namespace: 'rancher_status',
-        name: name,
-        help: '1 if all containers in an environment are active'
-    })
-}
-
-function updateGauge(name, value) {
-    if (!gauges[name]) {
-        createGauge(name)
+function getOptions() {
+    var opts = {
+        host:            process.env.HOST,
+        port:            process.env.PORT || 8080,
+        api_access_key:  process.env.API_ACCESS_KEY,
+        api_secret_key:  process.env.API_SECRET_KEY,
+        listen_port:     process.env.LISTEN_PORT || 9010,
+        update_interval: process.env.UPDATE_INTERVAL || 5000
     }
-    gauges[name].set({
-        name: name
-    }, value)
-}
 
-function updateMetrics() {
-    debug('updating metrics')
-    poll(function(err, results) {
-        if (err) {
-            throw err
+    var requiredOpts = [
+        'HOST',
+        'API_ACCESS_KEY',
+        'API_SECRET_KEY'
+    ]
+    requiredOpts.forEach(function(name) {
+        if (!opts[name.toLowerCase()]) {
+            throw new Error('Missing environment variable for option: ' + name)
+            process.exit(1)
         }
-        debug('got results %o', results)
-        Object.keys(results).forEach(function(name) {
-            var state = results[name]
-            name = name.replace('-', '_')
-            updateGauge(name, state == 'active' ? 1 : 0)
-        });
-    });
+    })
+
+    return opts
 }
 
-setInterval(updateMetrics, 5000)
-updateMetrics()
-client.listen(9010)
+function createServer(host, port, listen_port, update_interval) {
+    var client = new promclient()
+    var gauges = {}
+
+    function createGauge(name) {
+        gauges[name] = client.newGauge({
+            namespace: 'rancher_status',
+            name: name,
+            help: '1 if all containers in an environment are active'
+        })
+    }
+
+    function updateGauge(name, value) {
+        if (!gauges[name]) {
+            createGauge(name)
+        }
+        gauges[name].set({
+            name: name
+        }, value)
+    }
+
+    function updateMetrics() {
+        debug.log('requesting metrics')
+        getEnvironmentsState(host, port, function(err, results) {
+            if (err) {
+                throw err
+            }
+            debug.log('got metric results %o', results)
+            Object.keys(results).forEach(function(name) {
+                var state = results[name]
+                name = name.replace('-', '_')
+                updateGauge(name, state == 'active' ? 1 : 0)
+            });
+        });
+    }
+
+    client.listen(listen_port)
+    debug.log('listening on %s', listen_port)
+
+    updateMetrics()
+    setInterval(updateMetrics, update_interval)
+}
 
 
-function poll(callback) {
+function getEnvironmentsState(host, port, callback) {
     var envIdMap = {}
 
     async.waterfall([
@@ -135,7 +160,7 @@ function poll(callback) {
 }
 
 function jsonRequest(uri, callback) {
-    debug('send request: %s', uri)
+    debug.http('send request: %s', uri)
 
     request({
         uri: uri,
@@ -143,23 +168,23 @@ function jsonRequest(uri, callback) {
             'Accept': 'application/json'
         },
         auth: {
-            user: username,
-            pass: password,
+            user: opts.api_access_key,
+            pass: opts.api_secret_key,
             sendImmediately: true
         }
     }, function(err, response, body) {
         if (err) {
-            debug('got error response')
+            debug.http('got error response')
             return callback(err)
         }
 
-        debug('got valid response with status %s', response.statusCode)
+        debug.http('got valid response with status %s', response.statusCode)
 
         var data;
         try {
             data = JSON.parse(body)
         } catch(e) {
-            debug('could not JSON decode response body')
+            debug.http('could not JSON decode response body')
             var error = new Error('could not decode')
             error.response = response
             error.body = body
