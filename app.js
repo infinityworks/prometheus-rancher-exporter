@@ -1,7 +1,8 @@
 var request = require('request')
 var debug = {
-    log: require('debug')('rs'),
-    http: require('debug')('rs.http')
+    log: require('debug')('re'),
+    http: require('debug')('re.http'),
+    metrics: require('debug')('re.metrics')
 }
 var async = require('async')
 var promclient = require('prometheus-client')
@@ -15,16 +16,18 @@ createServer(opts.host, opts.port, opts.listen_port, opts.update_interval)
 
 function getOptions() {
     var opts = {
-        host:            process.env.HOST,
-        port:            process.env.PORT || 8080,
+        // required
         api_access_key:  process.env.API_ACCESS_KEY,
         api_secret_key:  process.env.API_SECRET_KEY,
+
+        // optional
+        host:            process.env.HOST || 'localhost',
+        port:            process.env.PORT || 8080,
         listen_port:     process.env.LISTEN_PORT || 9010,
         update_interval: process.env.UPDATE_INTERVAL || 5000
     }
 
     var requiredOpts = [
-        'HOST',
         'API_ACCESS_KEY',
         'API_SECRET_KEY'
     ]
@@ -44,13 +47,13 @@ function createServer(host, port, listen_port, update_interval) {
 
     function createGauge(name) {
         gauges[name] = client.newGauge({
-            namespace: 'rancher_status',
+            namespace: 'rancher',
             name: name,
-            help: '1 if all containers in an environment are active'
+            help: 'Value of 1 if all containers in a stack are active'
         })
     }
 
-    function updateGauge(name, value) {
+    function updateGauge(name, params, value) {
         if (!gauges[name]) {
             createGauge(name)
         }
@@ -63,13 +66,16 @@ function createServer(host, port, listen_port, update_interval) {
         debug.log('requesting metrics')
         getEnvironmentsState(host, port, function(err, results) {
             if (err) {
+                debug.log('failed to get environment state: %s', err.toString())
                 throw err
             }
             debug.log('got metric results %o', results)
             Object.keys(results).forEach(function(name) {
                 var state = results[name]
-                name = name.replace('-', '_')
-                updateGauge(name, state == 'active' ? 1 : 0)
+                var gaugeName = 'environment_' + getSafeName(name)
+                var value = (state == 'active') ? 1 : 0
+                debug.metrics('setting gauge %s to %s', gaugeName, value)
+                updateGauge(gaugeName, { state: state }, value)
             });
         });
     }
@@ -81,6 +87,9 @@ function createServer(host, port, listen_port, update_interval) {
     setInterval(updateMetrics, update_interval)
 }
 
+function getSafeName(name) {
+    return name.replace(/[^a-zA-Z0-9_:]/g, '_')
+}
 
 function getEnvironmentsState(host, port, callback) {
     var envIdMap = {}
@@ -159,8 +168,13 @@ function getEnvironmentsState(host, port, callback) {
     })
 }
 
+function getRequestId() {
+    return Math.floor(Math.random() * 100000000000000)
+}
+
 function jsonRequest(uri, callback) {
-    debug.http('send request: %s', uri)
+    var requestId = getRequestId()
+    debug.http('send request %s: %s', requestId, uri)
 
     request({
         uri: uri,
@@ -174,18 +188,18 @@ function jsonRequest(uri, callback) {
         }
     }, function(err, response, body) {
         if (err) {
-            debug.http('got error response')
+            debug.http('got error response: %s', err.toString())
             return callback(err)
         }
 
-        debug.http('got valid response with status %s', response.statusCode)
+        debug.http('got response for %s with code %s', requestId, response.statusCode)
 
         var data;
         try {
             data = JSON.parse(body)
         } catch(e) {
-            debug.http('could not JSON decode response body')
-            var error = new Error('could not decode')
+            debug.http('Failed to JSON decode response body')
+            var error = new Error('json decode')
             error.response = response
             error.body = body
             return callback(error)

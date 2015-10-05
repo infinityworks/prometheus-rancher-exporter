@@ -1,0 +1,5 @@
+FROM node:4.1-onbuild
+MAINTAINER CIS
+
+ENV DEBUG re
+EXPOSE 9010
