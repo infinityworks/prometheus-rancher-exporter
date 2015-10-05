@@ -1,14 +1,14 @@
 {
-  "name": "rancher-status",
-  "version": "1.0.0",
-  "description": "",
+  "name": "prometheus-rancher-exporter",
+  "version": "0.1",
+  "description": "Exposes Rancher metrics to Prometheus",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "James Barwell <jb@jamesbarwell.co.uk>",
+  "license": "MIT",
   "dependencies": {
     "async": "^1.4.2",
     "debug": "^2.2.0",
