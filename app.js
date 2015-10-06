@@ -7,8 +7,9 @@ var debug = {
 var async = require('async')
 var promclient = require('prometheus-client')
 
-process.on('SIGTERM', function () {
-    process.exit(0);
+process.on('SIGINT', function() {
+    debug.log('Received SIGINT - shutting down')
+    process.exit(1);
 });
 
 var opts = getOptions()
