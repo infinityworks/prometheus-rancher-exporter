@@ -44,23 +44,15 @@ function getOptions() {
 
 function createServer(host, port, listen_port, update_interval) {
     var client = new promclient()
-    var gauges = {}
 
-    function createGauge(name) {
-        gauges[name] = client.newGauge({
-            namespace: 'rancher',
-            name: name,
-            help: 'Value of 1 if all containers in a stack are active'
-        })
-    }
+    var gauge = client.newGauge({
+        namespace: 'rancher',
+        name: 'environment',
+        help: 'Value of 1 if all containers in a stack are active'
+    })
 
-    function updateGauge(name, params, value) {
-        if (!gauges[name]) {
-            createGauge(name)
-        }
-        gauges[name].set({
-            name: name
-        }, value)
+    function updateGauge(params, value) {
+        gauge.set(params, value)
     }
 
     function updateMetrics() {
@@ -73,10 +65,9 @@ function createServer(host, port, listen_port, update_interval) {
             debug.log('got metric results %o', results)
             Object.keys(results).forEach(function(name) {
                 var state = results[name]
-                var gaugeName = 'environment_' + getSafeName(name)
+                var envName = getSafeName(name)
                 var value = (state == 'active') ? 1 : 0
-                debug.metrics('setting gauge %s to %s', gaugeName, value)
-                updateGauge(gaugeName, { state: state }, value)
+                updateGauge({ name: envName}, value)
             });
         });
     }
