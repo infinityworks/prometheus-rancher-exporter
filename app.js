@@ -93,8 +93,16 @@ function getEnvironmentsState(host, port, callback) {
                 if (err) {
                     return next(err)
                 }
-                var environments = json.data[0].links.environments
-                next(null, environments)
+                if (Array.isArray(json.data) &&
+                    json.data[0] &&
+                    json.data[0].links &&
+                    json.data[0].links.environments
+                ) {
+                    var environments = json.data[0].links.environments
+                    return next(null, environments)
+                }
+                debug.log('Missing data from API: %o', json)
+                return next(new Error('Missing data from API: ' + json.toString()))
             })
         },
         function(environmentsUrl, next) {
