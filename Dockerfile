@@ -1,5 +1,5 @@
 FROM gliderlabs/alpine:3.1
-MAINTAINER CIS
+MAINTAINER barwell
 
 RUN apk-install nodejs
 
