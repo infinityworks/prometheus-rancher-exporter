@@ -45,19 +45,25 @@ function getOptions() {
 function createServer(host, port, listen_port, update_interval) {
     var client = new promclient()
 
-    var gauge = client.newGauge({
+    var environment_gauge = client.newGauge({
         namespace: 'rancher',
         name: 'environment',
         help: 'Value of 1 if all containers in a stack are active'
     })
 
-    function updateGauge(params, value) {
-        gauge.set(params, value)
+    var services_gauge = client.newGauge({
+        namespace: 'rancher',
+        name: 'services',
+        help: 'Value of 1 if individual services in a stack are active'
+    })
+
+    function updateGauge(gauge_name, params, value) {
+        gauge_name.set(params, value)
     }
 
     function updateMetrics() {
         debug.log('requesting metrics')
-        getEnvironmentsState(host, port, function(err, results) {
+        getEnvironmentsState(host, port, function(err, results, servicedata) {
             if (err) {
                 debug.log('failed to get environment state: %s', err.toString())
                 throw err
@@ -67,8 +73,18 @@ function createServer(host, port, listen_port, update_interval) {
                 var state = results[name]
                 var envName = getSafeName(name)
                 var value = (state == 'active') ? 1 : 0
-                updateGauge({ name: envName}, value)
+                updateGauge(environment_gauge, { name: envName }, value)
             });
+            debug.log('got service metric results %o', servicedata)
+            servicedata.map( function(item) {
+                var state = item.state
+                var serviceName = getSafeName(item.name)
+                var envName = getSafeName(item.environment)
+                var envServname = envName + "/" + serviceName
+                var value = (state == 'active') ? 1 : 0
+                updateGauge(services_gauge, { name: envServname }, value)
+            });
+
         });
     }
 
@@ -161,10 +177,10 @@ function getEnvironmentsState(host, port, callback) {
                     envState[service.environment] = service.state
                 }
             });
-            next(null, envState)
+            next(null, envState, serviceData)
         }
-    ], function(err, results) {
-        callback(err, results)
+    ], function(err, results, serviceData) {
+        callback(err, results, serviceData)
     })
 }
 
