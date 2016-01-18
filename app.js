@@ -68,7 +68,7 @@ function createServer(host, port, listen_port, update_interval) {
                 debug.log('failed to get environment state: %s', err.toString())
                 throw err
             }
-            debug.log('got metric results %o', results)
+            debug.log('got stack metric results %o', results)
             Object.keys(results).forEach(function(name) {
                 var state = results[name]
                 var envName = getSafeName(name)
