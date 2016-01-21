@@ -57,6 +57,12 @@ function createServer(host, port, listen_port, update_interval) {
         help: 'Value of 1 if individual services in a stack are active'
     })
 
+    var hosts_gauge = client.newGauge({
+        namespace: 'rancher',
+        name: 'hosts',
+        help: 'Value of 1 if individual hosts are active'
+    })
+
     function updateGauge(gauge_name, params, value) {
         gauge_name.set(params, value)
     }
@@ -84,6 +90,13 @@ function createServer(host, port, listen_port, update_interval) {
                 var value = (state == 'active') ? 1 : 0
                 updateGauge(services_gauge, { name: envServname }, value)
             });
+            debug.log('got host metric results %o', results)
+            Object.keys(results).forEach(function(name) {
+                var state = results[name]
+                var hostName = getSafeName(name)
+                var value = (state == 'active') ? 1 : 0
+                updateGauge(hosts_gauge, { name: hostName }, value)
+            });
 
         });
     }
@@ -106,22 +119,25 @@ function getEnvironmentsState(host, port, callback) {
         function(next) {
             var uri = 'http://' + host + ':' + port + '/v1/projects'
             jsonRequest(uri, function(err, json) {
+                debug.log('got json results %o', json.data)
                 if (err) {
                     return next(err)
                 }
                 if (Array.isArray(json.data) &&
                     json.data[0] &&
                     json.data[0].links &&
+                    json.data[0].links.hosts && 
                     json.data[0].links.environments
                 ) {
                     var environments = json.data[0].links.environments
-                    return next(null, environments)
+                    var hosts = json.data[0].links.hosts
+                    return next(null, environments, hosts)
                 }
                 debug.log('Missing data from API: %o', json)
                 return next(new Error('Missing data from API: ' + json.toString()))
             })
         },
-        function(environmentsUrl, next) {
+        function(environmentsUrl, hostsUrl, next) {
             jsonRequest(environmentsUrl, function(err, json) {
                 if (err) {
                     return next(err)
@@ -134,6 +150,18 @@ function getEnvironmentsState(host, port, callback) {
                 });
                 next(null, servicesUrl)
             });
+            jsonRequest(hostsUrl, function(err, json) {
+                if (err) {
+                    return next(err)
+                }
+                var servicesUrl = json.data.map(function(raw) {
+                    return raw.links.services
+                });
+                json.data.forEach(function(env) {
+                    envIdMap[env.id] = env.name
+                });
+            });
+            next(null, servicesUrl)
         },
         function(servicesUrls, next) {
             var tasks = servicesUrls.map(function(servicesUrl) {
