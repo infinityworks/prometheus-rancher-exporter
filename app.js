@@ -91,9 +91,9 @@ function createServer(host, port, listen_port, update_interval) {
                 updateGauge(services_gauge, { name: envServname }, value)
             });
             debug.log('got host metric results %o', hostdata)
-            Object.keys(results).forEach(function(name) {
-                var state = results[name]
-                var hostName = getSafeName(name)
+            hostdata.map( function(item) {
+                var state = item.state
+                var hostName = getSafeName(item.name)
                 var value = (state == 'active') ? 1 : 0
                 updateGauge(hosts_gauge, { name: hostName }, value)
             });
@@ -157,17 +157,16 @@ function getEnvironmentsState(host, port, callback) {
                 if (err) {
                     return next(err)
                 }
-                var hostnamesUrl = json.data.map(function(raw) {
-                    return raw.links.hosts
+                var hostsData = json.data.map(function(raw) {
+                    return {
+                        name: raw.name,
+                        state: raw.state
+                    }
                 });
-                json.data.forEach(function(host) {
-                    hostIdMap[host.id] = host.name
-                });
+                next(null, servicesUrl, hostsData)
             });
-            next(null, servicesUrl, hostsUrl)
         },
-        function(servicesUrls, hostsUrls, next) {
-            debug.log('servicesUrls dump %o', servicesUrls)
+        function(servicesUrls, hostsData, next) {
             var tasks = servicesUrls.map(function(servicesUrl) {
                 return function(next) {
                     jsonRequest(servicesUrl, next)
@@ -179,22 +178,10 @@ function getEnvironmentsState(host, port, callback) {
                     return servicesRaw.data
                 });
 
-                next(null, data, hostsUrls)
-            });
-        },
-        function(servicesData, hostsUrls, next) {
-            jsonRequest(hostsUrls, function(err, json) {
-                if (err) {
-                    return next(err)
-                }
-//                var hostdata = json.Data
-                debug.log('hostsRaw dump %o', json)
-                next(null, servicesData, json)
+                next(null, data, hostsData)
             });
         },
         function(servicesData, hostsData, next) {
-            debug.log('got servicesData dump %o', servicesData)
-            debug.log('got hostdata dump %o', hostsData)
             var services = servicesData.map(function(stackServices) {
                 return stackServices.map(function(service) {
                     return {
@@ -205,24 +192,19 @@ function getEnvironmentsState(host, port, callback) {
                 });
             });
 
-            var hostData = hostsData.map(function(stackHosts) {
-                return stackHosts.map(function(host) {
-                    return {
-                        name: host.name,
-                        state: host.state
-                    }
-                });
-            });
-
             var flattened = []
             services.forEach(function(service) {
                 flattened = flattened.concat(service)
             });
 
-            next(null, flattened, hostData)
+            var hostflattened = []
+            hostsData.forEach(function(host) {
+                hostflattened = hostflattened.concat(host)
+            });
+
+            next(null, flattened, hostflattened)
         },
         function(serviceData, hostData, next) {
-            debug.log('got hostdata dump %o', hostData)
             var envState = {}
             serviceData.forEach(function(service) {
                 if (!envState[service.environment]) {
