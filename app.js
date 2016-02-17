@@ -13,18 +13,18 @@ process.on('SIGINT', function() {
 });
 
 var opts = getOptions()
-createServer(opts.host, opts.listen_port, opts.update_interval)
+createServer(opts.cattle_config_url, opts.listen_port, opts.update_interval)
 
 function getOptions() {
     var opts = {
         // required
-        api_access_key:  process.env.CATTLE_ACCESS_KEY,
-        api_secret_key:  process.env.CATTLE_SECRET_KEY,
+        cattle_access_key:  process.env.CATTLE_ACCESS_KEY,
+        cattle_secret_key:  process.env.CATTLE_SECRET_KEY,
 
         // optional
-        host:            process.env.CATTLE_CONFIG_URL || 'http://localhost:8080/v1',
-        listen_port:     process.env.LISTEN_PORT || 9010,
-        update_interval: process.env.UPDATE_INTERVAL || 5000
+        cattle_config_url:  process.env.CATTLE_CONFIG_URL || 'http://localhost:8080/v1',
+        listen_port:        process.env.LISTEN_PORT || 9010,
+        update_interval:    process.env.UPDATE_INTERVAL || 5000
     }
 
     var requiredOpts = [
@@ -41,7 +41,7 @@ function getOptions() {
     return opts
 }
 
-function createServer(host, listen_port, update_interval) {
+function createServer(cattle_config_url, listen_port, update_interval) {
     var client = new promclient()
 
     var environment_gauge = client.newGauge({
@@ -68,7 +68,7 @@ function createServer(host, listen_port, update_interval) {
 
     function updateMetrics() {
         debug.log('requesting metrics')
-        getEnvironmentsState(host, function(err, results, servicedata, hostdata) {
+        getEnvironmentsState(cattle_config_url, function(err, results, servicedata, hostdata) {
             if (err) {
                 debug.log('failed to get environment state: %s', err.toString())
                 throw err
@@ -111,13 +111,13 @@ function getSafeName(name) {
     return name.replace(/[^a-zA-Z0-9_:]/g, '_')
 }
 
-function getEnvironmentsState(host, callback) {
+function getEnvironmentsState(cattle_config_url, callback) {
     var envIdMap = {}
     var hostIdMap = {}
 
     async.waterfall([
         function(next) {
-            var uri = host + '/projects'
+            var uri = cattle_config_url + '/projects'
             jsonRequest(uri, function(err, json) {
                 debug.log('got json results %o', json.data)
                 if (err) {
@@ -197,8 +197,8 @@ function getEnvironmentsState(host, callback) {
             });
 
             var hostflattened = []
-            hostsData.forEach(function(host) {
-                hostflattened = hostflattened.concat(host)
+            hostsData.forEach(function(cattle_config_url) {
+                hostflattened = hostflattened.concat(cattle_config_url)
             });
 
             next(null, flattened, hostflattened)
@@ -233,8 +233,8 @@ function jsonRequest(uri, callback) {
             'Accept': 'application/json'
         },
         auth: {
-            user: opts.api_access_key,
-            pass: opts.api_secret_key,
+            user: opts.cattle_access_key,
+            pass: opts.cattle_secret_key,
             sendImmediately: true
         }
     }, function(err, response, body) {
