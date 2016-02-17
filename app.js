@@ -13,24 +13,23 @@ process.on('SIGINT', function() {
 });
 
 var opts = getOptions()
-createServer(opts.host, opts.port, opts.listen_port, opts.update_interval)
+createServer(opts.host, opts.listen_port, opts.update_interval)
 
 function getOptions() {
     var opts = {
         // required
-        api_access_key:  process.env.API_ACCESS_KEY,
-        api_secret_key:  process.env.API_SECRET_KEY,
+        api_access_key:  process.env.CATTLE_ACCESS_KEY,
+        api_secret_key:  process.env.CATTLE_SECRET_KEY,
 
         // optional
-        host:            process.env.HOST || 'localhost',
-        port:            process.env.PORT || 8080,
+        host:            process.env.CATTLE_CONFIG_URL || 'http://localhost:8080/v1',
         listen_port:     process.env.LISTEN_PORT || 9010,
         update_interval: process.env.UPDATE_INTERVAL || 5000
     }
 
     var requiredOpts = [
-        'API_ACCESS_KEY',
-        'API_SECRET_KEY'
+        'CATTLE_ACCESS_KEY',
+        'CATTLE_SECRET_KEY'
     ]
     requiredOpts.forEach(function(name) {
         if (!opts[name.toLowerCase()]) {
@@ -42,7 +41,7 @@ function getOptions() {
     return opts
 }
 
-function createServer(host, port, listen_port, update_interval) {
+function createServer(host, listen_port, update_interval) {
     var client = new promclient()
 
     var environment_gauge = client.newGauge({
@@ -69,7 +68,7 @@ function createServer(host, port, listen_port, update_interval) {
 
     function updateMetrics() {
         debug.log('requesting metrics')
-        getEnvironmentsState(host, port, function(err, results, servicedata, hostdata) {
+        getEnvironmentsState(host, function(err, results, servicedata, hostdata) {
             if (err) {
                 debug.log('failed to get environment state: %s', err.toString())
                 throw err
@@ -112,13 +111,13 @@ function getSafeName(name) {
     return name.replace(/[^a-zA-Z0-9_:]/g, '_')
 }
 
-function getEnvironmentsState(host, port, callback) {
+function getEnvironmentsState(host, callback) {
     var envIdMap = {}
     var hostIdMap = {}
 
     async.waterfall([
         function(next) {
-            var uri = 'http://' + host + ':' + port + '/v1/projects'
+            var uri = host + '/projects'
             jsonRequest(uri, function(err, json) {
                 debug.log('got json results %o', json.data)
                 if (err) {
