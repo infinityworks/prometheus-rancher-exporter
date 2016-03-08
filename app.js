@@ -94,8 +94,7 @@ function createServer(cattle_config_url, listen_port, update_interval) {
                 var state = item.state
                 var hostName = (item.name != null) ? getSafeName(item.name) : getSafeName(item.hostname)
                 var value = (state == 'active') ? 1 : 0
-                var params = item.labels + { name: hostName }
-                updateGauge(hosts_gauge, params, value)
+                updateGauge(hosts_gauge, { name: hostName }, value)
             });
 
         });
@@ -127,7 +126,7 @@ function getEnvironmentsState(cattle_config_url, callback) {
                 if (Array.isArray(json.data) &&
                     json.data[0] &&
                     json.data[0].links &&
-                    json.data[0].links.hosts && 
+                    json.data[0].links.hosts &&
                     json.data[0].links.environments
                 ) {
                     var environments = json.data[0].links.environments
