@@ -92,7 +92,7 @@ function createServer(cattle_config_url, listen_port, update_interval) {
             debug.log('got host metric results %o', hostdata)
             hostdata.map( function(item) {
                 var state = item.state
-                var hostName = getSafeName(item.name)
+                var hostName = (item.name != null) ? getSafeName(item.name) : getSafeName(item.hostname)
                 var value = (state == 'active') ? 1 : 0
                 updateGauge(hosts_gauge, { name: hostName }, value)
             });
@@ -126,7 +126,7 @@ function getEnvironmentsState(cattle_config_url, callback) {
                 if (Array.isArray(json.data) &&
                     json.data[0] &&
                     json.data[0].links &&
-                    json.data[0].links.hosts && 
+                    json.data[0].links.hosts &&
                     json.data[0].links.environments
                 ) {
                     var environments = json.data[0].links.environments
@@ -159,7 +159,9 @@ function getEnvironmentsState(cattle_config_url, callback) {
                 var hostsData = json.data.map(function(raw) {
                     return {
                         name: raw.name,
-                        state: raw.state
+                        state: raw.state,
+                        hostname: raw.hostname,
+                        labels: raw.labels
                     }
                 });
                 next(null, servicesUrl, hostsData)
