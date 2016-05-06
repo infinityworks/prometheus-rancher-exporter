@@ -13,24 +13,23 @@ process.on('SIGINT', function() {
 });
 
 var opts = getOptions()
-createServer(opts.host, opts.port, opts.listen_port, opts.update_interval)
+createServer(opts.cattle_config_url, opts.listen_port, opts.update_interval)
 
 function getOptions() {
     var opts = {
         // required
-        api_access_key:  process.env.API_ACCESS_KEY,
-        api_secret_key:  process.env.API_SECRET_KEY,
+        cattle_access_key:  process.env.CATTLE_ACCESS_KEY,
+        cattle_secret_key:  process.env.CATTLE_SECRET_KEY,
 
         // optional
-        host:            process.env.HOST || 'localhost',
-        port:            process.env.PORT || 8080,
-        listen_port:     process.env.LISTEN_PORT || 9010,
-        update_interval: process.env.UPDATE_INTERVAL || 5000
+        cattle_config_url:  process.env.CATTLE_CONFIG_URL || 'http://localhost:8080/v1',
+        listen_port:        process.env.LISTEN_PORT || 9010,
+        update_interval:    process.env.UPDATE_INTERVAL || 5000
     }
 
     var requiredOpts = [
-        'API_ACCESS_KEY',
-        'API_SECRET_KEY'
+        'CATTLE_ACCESS_KEY',
+        'CATTLE_SECRET_KEY'
     ]
     requiredOpts.forEach(function(name) {
         if (!opts[name.toLowerCase()]) {
@@ -42,33 +41,62 @@ function getOptions() {
     return opts
 }
 
-function createServer(host, port, listen_port, update_interval) {
+function createServer(cattle_config_url, listen_port, update_interval) {
     var client = new promclient()
 
-    var gauge = client.newGauge({
+    var environment_gauge = client.newGauge({
         namespace: 'rancher',
         name: 'environment',
         help: 'Value of 1 if all containers in a stack are active'
     })
 
-    function updateGauge(params, value) {
-        gauge.set(params, value)
+    var services_gauge = client.newGauge({
+        namespace: 'rancher',
+        name: 'services',
+        help: 'Value of 1 if individual services in a stack are active'
+    })
+
+    var hosts_gauge = client.newGauge({
+        namespace: 'rancher',
+        name: 'hosts',
+        help: 'Value of 1 if individual hosts are active'
+    })
+
+    function updateGauge(gauge_name, params, value) {
+        gauge_name.set(params, value)
     }
 
     function updateMetrics() {
         debug.log('requesting metrics')
-        getEnvironmentsState(host, port, function(err, results) {
+        getEnvironmentsState(cattle_config_url, function(err, results, servicedata, hostdata) {
             if (err) {
                 debug.log('failed to get environment state: %s', err.toString())
                 throw err
             }
-            debug.log('got metric results %o', results)
+            debug.log('got stack metric results %o', results)
             Object.keys(results).forEach(function(name) {
                 var state = results[name]
                 var envName = getSafeName(name)
                 var value = (state == 'active') ? 1 : 0
-                updateGauge({ name: envName}, value)
+                updateGauge(environment_gauge, { name: envName }, value)
             });
+            debug.log('got service metric results %o', servicedata)
+            servicedata.map( function(item) {
+                var state = item.state
+                var serviceName = getSafeName(item.name)
+                var envName = getSafeName(item.environment)
+                var envServname = envName + "/" + serviceName
+                var value = (state == 'active') ? 1 : 0
+                updateGauge(services_gauge, { name: envServname }, value)
+            });
+            debug.log('got host metric results %o', hostdata)
+            hostdata.map( function(item) {
+                var state = item.state
+                var hostName = (item.name != null) ? getSafeName(item.name) : getSafeName(item.hostname)
+                var value = (state == 'active') ? 1 : 0
+                updateGauge(hosts_gauge, { name: hostName }, value)
+            });
+
         });
     }
 
@@ -83,29 +111,33 @@ function getSafeName(name) {
     return name.replace(/[^a-zA-Z0-9_:]/g, '_')
 }
 
-function getEnvironmentsState(host, port, callback) {
+function getEnvironmentsState(cattle_config_url, callback) {
     var envIdMap = {}
+    var hostIdMap = {}
 
     async.waterfall([
         function(next) {
-            var uri = 'http://' + host + ':' + port + '/v1/projects'
+            var uri = cattle_config_url + '/projects'
             jsonRequest(uri, function(err, json) {
+                debug.log('got json results %o', json.data)
                 if (err) {
                     return next(err)
                 }
                 if (Array.isArray(json.data) &&
                     json.data[0] &&
                     json.data[0].links &&
+                    json.data[0].links.hosts &&
                     json.data[0].links.environments
                 ) {
                     var environments = json.data[0].links.environments
-                    return next(null, environments)
+                    var hosts = json.data[0].links.hosts
+                    return next(null, environments, hosts)
                 }
                 debug.log('Missing data from API: %o', json)
                 return next(new Error('Missing data from API: ' + json.toString()))
             })
         },
-        function(environmentsUrl, next) {
+        function(environmentsUrl, hostsUrl, next) {
             jsonRequest(environmentsUrl, function(err, json) {
                 if (err) {
                     return next(err)
@@ -116,10 +148,26 @@ function getEnvironmentsState(host, port, callback) {
                 json.data.forEach(function(env) {
                     envIdMap[env.id] = env.name
                 });
-                next(null, servicesUrl)
+                next(null, servicesUrl, hostsUrl)
             });
         },
-        function(servicesUrls, next) {
+        function(servicesUrl, hostsUrl, next) {
+            jsonRequest(hostsUrl, function(err, json) {
+                if (err) {
+                    return next(err)
+                }
+                var hostsData = json.data.map(function(raw) {
+                    return {
+                        name: raw.name,
+                        state: raw.state,
+                        hostname: raw.hostname,
+                        labels: raw.labels
+                    }
+                });
+                next(null, servicesUrl, hostsData)
+            });
+        },
+        function(servicesUrls, hostsData, next) {
             var tasks = servicesUrls.map(function(servicesUrl) {
                 return function(next) {
                     jsonRequest(servicesUrl, next)
@@ -131,10 +179,10 @@ function getEnvironmentsState(host, port, callback) {
                     return servicesRaw.data
                 });
 
-                next(null, data)
+                next(null, data, hostsData)
             });
         },
-        function(servicesData, next) {
+        function(servicesData, hostsData, next) {
             var services = servicesData.map(function(stackServices) {
                 return stackServices.map(function(service) {
                     return {
@@ -150,9 +198,14 @@ function getEnvironmentsState(host, port, callback) {
                 flattened = flattened.concat(service)
             });
 
-            next(null, flattened)
+            var hostflattened = []
+            hostsData.forEach(function(cattle_config_url) {
+                hostflattened = hostflattened.concat(cattle_config_url)
+            });
+
+            next(null, flattened, hostflattened)
         },
-        function(serviceData, next) {
+        function(serviceData, hostData, next) {
             var envState = {}
             serviceData.forEach(function(service) {
                 if (!envState[service.environment]) {
@@ -161,10 +214,10 @@ function getEnvironmentsState(host, port, callback) {
                     envState[service.environment] = service.state
                 }
             });
-            next(null, envState)
+            next(null, envState, serviceData, hostData)
         }
-    ], function(err, results) {
-        callback(err, results)
+    ], function(err, results, serviceData, hostData) {
+        callback(err, results, serviceData, hostData)
     })
 }
 
@@ -182,8 +235,8 @@ function jsonRequest(uri, callback) {
             'Accept': 'application/json'
         },
         auth: {
-            user: opts.api_access_key,
-            pass: opts.api_secret_key,
+            user: opts.cattle_access_key,
+            pass: opts.cattle_secret_key,
             sendImmediately: true
         }
     }, function(err, response, body) {

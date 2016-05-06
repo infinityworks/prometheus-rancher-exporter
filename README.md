@@ -1,24 +1,42 @@
 prometheus-rancher-exporter
 ===========================
 
-Exposes Rancher environment status to Prometheus.
+Exposes Rancher environment status to Prometheus. Makes use of Rancher labels to create a connection to the API.
+Expects to get the following environment variables from the host, if not using rancher-compose then you can update these yourself:
+
+* CATTLE_ACCESS_KEY
+* CATTLE_SECRET_KEY
+* CATTLE_CONFIG_URL
 
 ## Install and deploy
 
 Run from Docker Hub:
 ```
-docker run -d --restart=always -p 9010:9010 -e HOST=<host> -e PORT=8080 -e API_ACCESS_KEY=<api-key> -e API_SECRET_KEY=<secret-key> barwell/prometheus-rancher-exporter
+docker run -d --restart=always -p 9010:9010 jolyonbrown/prometheus-rancher-exporter
 ```
 
 Build a docker image:
 ```
 docker build -t <image-name> .
-docker run -d --restart=always -p 9010:9010 -e HOST=<host> -e PORT=8080 -e API_ACCESS_KEY=<api-key> -e API_SECRET_KEY=<secret-key> <image-name>
+docker run -d --restart=always -p 9010:9010 <image-name>
 ```
 
 Running the node process:
 ```
-HOST=<host> PORT=8080 API_ACCESS_KEY=<api-key> API_SECRET_KEY=<secret-key> DEBUG=re node app.js
+DEBUG=re node app.js
+```
+
+## Docker compose
+
+```
+prometheus-rancher-exporter:
+    tty: true
+    labels:
+      io.rancher.container.create_agent: true
+      io.rancher.container.agent.role: environment
+    expose:
+      - 9010:9010
+    image: jolyonbrown/prometheus-rancher-exporter
 ```
 
 ## Metrics
