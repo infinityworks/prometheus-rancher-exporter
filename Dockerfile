@@ -1,5 +1,5 @@
-FROM gliderlabs/alpine:3.1
-MAINTAINER barwell
+FROM gliderlabs/alpine:3.3
+MAINTAINER infinityworksltd
 
 RUN apk-install nodejs
 
