@@ -7,7 +7,7 @@
     "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "James Barwell <jb@jamesbarwell.co.uk>",
+  "author": "James Barwell <james.barwell@infinityworks.com>",
   "license": "MIT",
   "dependencies": {
     "async": "^1.4.2",

@@ -1,8 +1,11 @@
-prometheus-rancher-exporter
-===========================
+# prometheus-rancher-exporter
 
-Exposes Rancher environment status to Prometheus. Makes use of Rancher labels to create a connection to the API.
-Expects to get the following environment variables from the host, if not using rancher-compose then you can update these yourself:
+Exposes the health of stacks/services and hosts from the Rancher API, to a Prometheus compatible endpoint. 
+
+## Description
+
+This container makes use of Ranchers ability to assign API access to a container at runtime. This is achieved through labels to create a connection to the API.
+The application, expects to get the following environment variables from the host, if not using the supplied labelss in rancher-compose then you can update these values yourself, using environment variables.
 
 * CATTLE_ACCESS_KEY
 * CATTLE_SECRET_KEY
@@ -10,9 +13,9 @@ Expects to get the following environment variables from the host, if not using r
 
 ## Install and deploy
 
-Run from Docker Hub:
+Run manually from Docker Hub:
 ```
-docker run -d --restart=always -p 9010:9010 jolyonbrown/prometheus-rancher-exporter
+docker run -d --restart=always -p 9010:9010 infinityworksltd/prometheus-rancher-exporter
 ```
 
 Build a docker image:
@@ -31,12 +34,13 @@ DEBUG=re node app.js
 ```
 prometheus-rancher-exporter:
     tty: true
+    stdin_open: true
     labels:
       io.rancher.container.create_agent: true
       io.rancher.container.agent.role: environment
     expose:
       - 9010:9010
-    image: jolyonbrown/prometheus-rancher-exporter
+    image: infinityworksltd/prometheus-rancher-exporter:latest
 ```
 
 ## Metrics
