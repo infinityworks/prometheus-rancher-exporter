@@ -15,7 +15,7 @@ The application, expects to get the following environment variables from the hos
 
 Run manually from Docker Hub:
 ```
-docker run -d --restart=always -p 9010:9010 infinityworksltd/prometheus-rancher-exporter
+docker run -d --restart=always -p 9010:9010 infinityworks/prometheus-rancher-exporter
 ```
 
 Build a docker image:
@@ -40,7 +40,7 @@ prometheus-rancher-exporter:
       io.rancher.container.agent.role: environment
     expose:
       - 9010:9010
-    image: infinityworksltd/prometheus-rancher-exporter:latest
+    image: infinityworks/prometheus-rancher-exporter:latest
 ```
 
 ## Metrics
