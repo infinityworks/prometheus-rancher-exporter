@@ -55,3 +55,6 @@ rancher_environment{name="test2"} 0
 rancher_environment{name="load_test"} 1
 rancher_environment{name="preprod"} 1
 ```
+
+## Metadata
+[![](https://images.microbadger.com/badges/version/infinityworks/prometheus-rancher-exporter.svg)](http://microbadger.com/images/infinityworks/prometheus-rancher-exporter "Get your own version badge on microbadger.com") [![](https://images.microbadger.com/badges/image/infinityworks/prometheus-rancher-exporter.svg)](http://microbadger.com/images/infinityworks/prometheus-rancher-exporter "Get your own image badge on microbadger.com")
