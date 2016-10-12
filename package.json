@@ -1,6 +1,6 @@
 {
   "name": "prometheus-rancher-exporter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Exposes Rancher metrics to Prometheus",
   "main": "app.js",
   "scripts": {

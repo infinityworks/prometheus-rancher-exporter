@@ -20,14 +20,15 @@ function getOptions() {
         // required
         cattle_access_key:  process.env.CATTLE_ACCESS_KEY,
         cattle_secret_key:  process.env.CATTLE_SECRET_KEY,
+        cattle_config_url:  process.env.CATTLE_URL, 
 
         // optional
-        cattle_config_url:  process.env.CATTLE_CONFIG_URL || 'http://localhost:8080/v1',
         listen_port:        process.env.LISTEN_PORT || 9010,
         update_interval:    process.env.UPDATE_INTERVAL || 5000
     }
 
     var requiredOpts = [
+        'CATTLE_URL',
         'CATTLE_ACCESS_KEY',
         'CATTLE_SECRET_KEY'
     ]

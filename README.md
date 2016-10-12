@@ -9,7 +9,7 @@ The application, expects to get the following environment variables from the hos
 
 * CATTLE_ACCESS_KEY
 * CATTLE_SECRET_KEY
-* CATTLE_CONFIG_URL
+* CATTLE_URL
 
 ## Install and deploy
 
