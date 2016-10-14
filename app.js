@@ -13,6 +13,9 @@ process.on('SIGINT', function() {
 });
 
 var opts = getOptions()
+console.log('process.env CATTLE_ACCESS_KEY ' + process.env.CATTLE_ACCESS_KEY);
+console.log('process.env CATTLE_SECRET_KEY ' + process.env.CATTLE_SECRET_KEY);
+console.log('process.env CATTLE_URL ' + process.env.CATTLE_URL);
 createServer(opts.cattle_url, opts.listen_port, opts.update_interval)
 
 function getOptions() {
@@ -118,10 +121,11 @@ function getEnvironmentsState(cattle_url, callback) {
 
     async.waterfall([
         function(next) {
-            debug.log('cattle configuration url:'+cattle_url)
             var uri = cattle_url + '/projects'
             jsonRequest(uri, function(err, json) {
-                debug.log('got json results %o', json.data)
+                if((typeof json.data !== 'undefined' && json.data !== null)){
+                    debug.log('got json results %o', json.data)
+                }              
                 if (err) {
                     return next(err)
                 }
