@@ -13,7 +13,7 @@ process.on('SIGINT', function() {
 });
 
 var opts = getOptions()
-createServer(opts.cattle_config_url, opts.listen_port, opts.update_interval)
+createServer(opts.cattle_url, opts.listen_port, opts.update_interval)
 
 function getOptions() {
     var opts = {
@@ -42,7 +42,7 @@ function getOptions() {
     return opts
 }
 
-function createServer(cattle_config_url, listen_port, update_interval) {
+function createServer(cattle_url, listen_port, update_interval) {
     var client = new promclient()
 
     var environment_gauge = client.newGauge({
@@ -69,7 +69,7 @@ function createServer(cattle_config_url, listen_port, update_interval) {
 
     function updateMetrics() {
         debug.log('requesting metrics')
-        getEnvironmentsState(cattle_config_url, function(err, results, servicedata, hostdata) {
+        getEnvironmentsState(cattle_url, function(err, results, servicedata, hostdata) {
             if (err) {
                 debug.log('failed to get environment state: %s', err.toString())
                 throw err
@@ -112,13 +112,13 @@ function getSafeName(name) {
     return name.replace(/[^a-zA-Z0-9_:]/g, '_')
 }
 
-function getEnvironmentsState(cattle_config_url, callback) {
+function getEnvironmentsState(cattle_url, callback) {
     var envIdMap = {}
     var hostIdMap = {}
 
     async.waterfall([
         function(next) {
-            var uri = cattle_config_url + '/projects'
+            var uri = cattle_url + '/projects'
             jsonRequest(uri, function(err, json) {
                 debug.log('got json results %o', json.data)
                 if (err) {
@@ -200,8 +200,8 @@ function getEnvironmentsState(cattle_config_url, callback) {
             });
 
             var hostflattened = []
-            hostsData.forEach(function(cattle_config_url) {
-                hostflattened = hostflattened.concat(cattle_config_url)
+            hostsData.forEach(function(cattle_url) {
+                hostflattened = hostflattened.concat(cattle_url)
             });
 
             next(null, flattened, hostflattened)
