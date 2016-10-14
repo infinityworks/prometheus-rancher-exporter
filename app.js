@@ -118,6 +118,7 @@ function getEnvironmentsState(cattle_url, callback) {
 
     async.waterfall([
         function(next) {
+            debug.log('cattle configuration url:'+cattle_url)
             var uri = cattle_url + '/projects'
             jsonRequest(uri, function(err, json) {
                 debug.log('got json results %o', json.data)
