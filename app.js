@@ -20,7 +20,7 @@ function getOptions() {
         // required
         cattle_access_key:  process.env.CATTLE_ACCESS_KEY,
         cattle_secret_key:  process.env.CATTLE_SECRET_KEY,
-        cattle_config_url:  process.env.CATTLE_URL, 
+        cattle_url:  process.env.CATTLE_URL, 
 
         // optional
         listen_port:        process.env.LISTEN_PORT || 9010,
