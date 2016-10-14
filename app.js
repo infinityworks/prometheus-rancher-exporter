@@ -13,8 +13,8 @@ process.on('SIGINT', function() {
 });
 
 var opts = getOptions()
-console.log('process.env CATTLE_ACCESS_KEY ' + process.env.CATTLE_ACCESS_KEY);
-console.log('process.env CATTLE_SECRET_KEY ' + process.env.CATTLE_SECRET_KEY);
+//console.log('process.env CATTLE_ACCESS_KEY ' + process.env.CATTLE_ACCESS_KEY);
+//console.log('process.env CATTLE_SECRET_KEY ' + process.env.CATTLE_SECRET_KEY);
 console.log('process.env CATTLE_URL ' + process.env.CATTLE_URL);
 createServer(opts.cattle_url, opts.listen_port, opts.update_interval)
 
