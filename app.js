@@ -19,6 +19,12 @@ console.log('process.env CATTLE_URL ' + process.env.CATTLE_URL);
 createServer(opts.cattle_url, opts.listen_port, opts.update_interval)
 
 function getOptions() {
+    //Adding in backwards compatibility for older versions of Rancher
+    if(process.env.CATTLE_CONFIG_URL) { 
+        console.log('Setting CATTLE_URL from CATTLE_CONFIG_URL');
+        process.env['CATTLE_URL'] = 'process.env.CATTLE_CONFIG_URL';
+    }
+
     var opts = {
         // required
         cattle_access_key:  process.env.CATTLE_ACCESS_KEY,
