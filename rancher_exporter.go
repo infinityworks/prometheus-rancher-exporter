@@ -4,9 +4,10 @@ import (
 	"flag"
 	"net/http"
 	"os"
-	"rancher-go-exporter/hosts"
-	"rancher-go-exporter/services"
-	"rancher-go-exporter/stacks"
+
+	"github.com/infinityworksltd/prometheus-rancher-exporter/hosts"
+	"github.com/infinityworksltd/prometheus-rancher-exporter/services"
+	"github.com/infinityworksltd/prometheus-rancher-exporter/stacks"
 
 	"fmt"
 
