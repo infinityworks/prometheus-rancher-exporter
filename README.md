@@ -1,15 +1,21 @@
 # prometheus-rancher-exporter
 
-Exposes the health of stacks/services and hosts from the Rancher API, to a Prometheus compatible endpoint. 
+Exposes the health of stacks/services and hosts from the Rancher API, to a Prometheus compatible endpoint.
+*Please Note this exporter has been re-written for the new v2 Rancher API available from version 1.2 of Rancher onwards. Sadly, this breaks backwards compatibility. If you require a version compatible with older versions, please use versions <05 from the Dockerhub*
 
 ## Description
 
 This container makes use of Ranchers ability to assign API access to a container at runtime. This is achieved through labels to create a connection to the API.
 The application, expects to get the following environment variables from the host, if not using the supplied labelss in rancher-compose then you can update these values yourself, using environment variables.
 
+Required:
 * CATTLE_ACCESS_KEY
 * CATTLE_SECRET_KEY
 * CATTLE_URL
+
+Optional
+* METRICS_PATH  //Path under which to expose metrics.
+* LISTEN_ADDRESS // Port on which to expose metrics.
 
 ## Install and deploy
 
@@ -45,7 +51,7 @@ prometheus-rancher-exporter:
 
 ## Metrics
 
-Metrics will be made available on port 9010 by default, or you can pass environment variable ```LISTEN_PORT``` to override this.
+Metrics will be made available on port 9010 by default, or you can pass environment variable ```LISTEN_ADDRESS``` to override this.
 
 ```
 # HELP rancher_environment Value of 1 if all containers in a stack are active
