@@ -115,8 +115,8 @@ func (e *Exporter) scrapeStacks(rancherURL string, accessKey string, secretKey s
 	e.StackStateUpdatingHealthy.Reset()
 	e.StackStateInitializing.Reset()
 
-	fmt.Println("Scraping: ", rancherURL+"stacks/")
-	err, stacksData := getJSONstacks(rancherURL+"stacks/", accessKey, secretKey)
+	fmt.Println("Scraping: ", rancherURL+"/stacks/")
+	err, stacksData := getJSONstacks(rancherURL+"/stacks/", accessKey, secretKey)
 	if err != nil {
 		return err
 	}
