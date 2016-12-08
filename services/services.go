@@ -126,9 +126,8 @@ func (e *Exporter) serviceScrape(rancherURL string, accessKey string, secretKey 
 	e.ServiceStateUpdatingHealthy.Reset()
 	e.ServiceStateInitializing.Reset()
 
-	fmt.Println("Scraping: ", rancherURL+"services/")
-	//err, servicesData := getJSONservices(rancherURL+"services/", accessKey, secretKey)
-	err, servicesData := getJSONservices(rancherURL+"services/", accessKey, secretKey)
+	fmt.Println("Scraping: ", rancherURL+"/services/")
+	err, servicesData := getJSONservices(rancherURL+"/services/", accessKey, secretKey)
 	if err != nil {
 		return err
 	}

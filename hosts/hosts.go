@@ -202,8 +202,8 @@ func (e *Exporter) scrapeHosts(rancherURL string, accessKey string, secretKey st
 	e.HostStateUpdatingActive.Reset()
 	e.HostStateUpdatingInactive.Reset()
 
-	fmt.Println("Scraping: ", rancherURL+"hosts/")
-	err, hostsData := getJSONhosts(rancherURL+"hosts/", accessKey, secretKey)
+	fmt.Println("Scraping: ", rancherURL+"/hosts/")
+	err, hostsData := getJSONhosts(rancherURL+"/hosts/", accessKey, secretKey)
 	if err != nil {
 		return err
 	}
