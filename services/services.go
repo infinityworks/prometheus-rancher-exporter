@@ -13,17 +13,29 @@ import (
 // Exporter collects Rancher stats from machine of a specified user and exports them using
 // the prometheus metrics package.
 type Exporter struct {
-	rancherURL                    string
-	accessKey                     string
-	secretKey                     string
-	mutex                         sync.RWMutex
-	ServiceScale                  *prometheus.GaugeVec
-	ServiceHealth                 *prometheus.GaugeVec
-	ServiceStateHealthy           *prometheus.GaugeVec
-	ServiceStateUnhealthy         *prometheus.GaugeVec
-	ServiceStateUpdatingUnhealthy *prometheus.GaugeVec
-	ServiceStateUpdatingHealthy   *prometheus.GaugeVec
-	ServiceStateInitializing      *prometheus.GaugeVec
+	rancherURL                   string
+	accessKey                    string
+	secretKey                    string
+	mutex                        sync.RWMutex
+	ServiceScale                 *prometheus.GaugeVec
+	ServiceHealth                *prometheus.GaugeVec
+	ServiceStateActivating       *prometheus.GaugeVec
+	ServiceStateActive           *prometheus.GaugeVec
+	ServiceStateCanceledUpgrade  *prometheus.GaugeVec
+	ServiceStateCancelingUpgrade *prometheus.GaugeVec
+	ServiceStateDeactivating     *prometheus.GaugeVec
+	ServiceStateFinishingUpgrade *prometheus.GaugeVec
+	ServiceStateInactive         *prometheus.GaugeVec
+	ServiceStateRegistering      *prometheus.GaugeVec
+	ServiceStateRemoved          *prometheus.GaugeVec
+	ServiceStateRemoving         *prometheus.GaugeVec
+	ServiceStateRequested        *prometheus.GaugeVec
+	ServiceStateRestarting       *prometheus.GaugeVec
+	ServiceStateRollingBack      *prometheus.GaugeVec
+	ServiceStateUpdatingActive   *prometheus.GaugeVec
+	ServiceStateUpdatingInactive *prometheus.GaugeVec
+	ServiceStateUpgraded         *prometheus.GaugeVec
+	ServiceStateUpgrading        *prometheus.GaugeVec
 }
 
 // ServicesData is used to store data from the services endpoint in the API
@@ -51,37 +63,109 @@ func NewExporter(rancherURL string, accessKey string, secretKey string) *Exporte
 		ServiceHealth: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Namespace: "rancher",
-				Name:      "service_health_state",
+				Name:      "service_health_status",
 				Help:      "HealthState of defined service as reported by Rancher",
 			}, []string{"rancherURL", "name"}),
-		ServiceStateHealthy: prometheus.NewGaugeVec(
+		ServiceStateActivating: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Namespace: "rancher",
-				Name:      "service_state_healthy",
+				Name:      "service_state_activating",
 				Help:      "Service State of defined stack as reported by Rancher",
 			}, []string{"rancherURL", "name"}),
-		ServiceStateUnhealthy: prometheus.NewGaugeVec(
+		ServiceStateActive: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Namespace: "rancher",
-				Name:      "service_state_unhealthy",
+				Name:      "service_state_active",
 				Help:      "Service State of defined stack as reported by Rancher",
 			}, []string{"rancherURL", "name"}),
-		ServiceStateUpdatingUnhealthy: prometheus.NewGaugeVec(
+		ServiceStateCanceledUpgrade: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Namespace: "rancher",
-				Name:      "service_state_updating_unhealthy",
+				Name:      "service_state_canceled_upgrade",
 				Help:      "HealthState of defined stack as reported by Rancher",
 			}, []string{"rancherURL", "name"}),
-		ServiceStateUpdatingHealthy: prometheus.NewGaugeVec(
+		ServiceStateCancelingUpgrade: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Namespace: "rancher",
-				Name:      "service_state_updating_healthy",
+				Name:      "service_state_canceling_upgrade",
 				Help:      "HealthState of defined stack as reported by Rancher",
 			}, []string{"rancherURL", "name"}),
-		ServiceStateInitializing: prometheus.NewGaugeVec(
+		ServiceStateDeactivating: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Namespace: "rancher",
-				Name:      "service_state_initializing",
+				Name:      "service_state_deactivating",
+				Help:      "HealthState of defined stack as reported by Rancher",
+			}, []string{"rancherURL", "name"}),
+		ServiceStateFinishingUpgrade: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: "rancher",
+				Name:      "service_state_finishing_upgrade",
+				Help:      "HealthState of defined stack as reported by Rancher",
+			}, []string{"rancherURL", "name"}),
+		ServiceStateInactive: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: "rancher",
+				Name:      "service_state_inactive",
+				Help:      "HealthState of defined stack as reported by Rancher",
+			}, []string{"rancherURL", "name"}),
+		ServiceStateRegistering: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: "rancher",
+				Name:      "service_state_registering",
+				Help:      "HealthState of defined stack as reported by Rancher",
+			}, []string{"rancherURL", "name"}),
+		ServiceStateRemoved: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: "rancher",
+				Name:      "service_state_removed",
+				Help:      "HealthState of defined stack as reported by Rancher",
+			}, []string{"rancherURL", "name"}),
+		ServiceStateRemoving: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: "rancher",
+				Name:      "service_state_removing",
+				Help:      "HealthState of defined stack as reported by Rancher",
+			}, []string{"rancherURL", "name"}),
+		ServiceStateRequested: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: "rancher",
+				Name:      "service_state_requested",
+				Help:      "HealthState of defined stack as reported by Rancher",
+			}, []string{"rancherURL", "name"}),
+		ServiceStateRestarting: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: "rancher",
+				Name:      "service_state_restarting",
+				Help:      "HealthState of defined stack as reported by Rancher",
+			}, []string{"rancherURL", "name"}),
+		ServiceStateRollingBack: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: "rancher",
+				Name:      "service_state_rolling_back",
+				Help:      "HealthState of defined stack as reported by Rancher",
+			}, []string{"rancherURL", "name"}),
+		ServiceStateUpdatingActive: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: "rancher",
+				Name:      "service_state_updating_active",
+				Help:      "HealthState of defined stack as reported by Rancher",
+			}, []string{"rancherURL", "name"}),
+		ServiceStateUpdatingInactive: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: "rancher",
+				Name:      "service_state_updating_inactive",
+				Help:      "HealthState of defined stack as reported by Rancher",
+			}, []string{"rancherURL", "name"}),
+		ServiceStateUpgraded: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: "rancher",
+				Name:      "service_state_upgraded",
+				Help:      "HealthState of defined stack as reported by Rancher",
+			}, []string{"rancherURL", "name"}),
+		ServiceStateUpgrading: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: "rancher",
+				Name:      "service_state_upgrading",
 				Help:      "HealthState of defined stack as reported by Rancher",
 			}, []string{"rancherURL", "name"}),
 	}
@@ -93,11 +177,23 @@ func NewExporter(rancherURL string, accessKey string, secretKey string) *Exporte
 func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	e.ServiceScale.Describe(ch)
 	e.ServiceHealth.Describe(ch)
-	e.ServiceStateHealthy.Describe(ch)
-	e.ServiceStateUnhealthy.Describe(ch)
-	e.ServiceStateUpdatingUnhealthy.Describe(ch)
-	e.ServiceStateUpdatingHealthy.Describe(ch)
-	e.ServiceStateInitializing.Describe(ch)
+	e.ServiceStateActivating.Describe(ch)
+	e.ServiceStateActive.Describe(ch)
+	e.ServiceStateCanceledUpgrade.Describe(ch)
+	e.ServiceStateCancelingUpgrade.Describe(ch)
+	e.ServiceStateDeactivating.Describe(ch)
+	e.ServiceStateFinishingUpgrade.Describe(ch)
+	e.ServiceStateInactive.Describe(ch)
+	e.ServiceStateRegistering.Describe(ch)
+	e.ServiceStateRemoved.Describe(ch)
+	e.ServiceStateRemoving.Describe(ch)
+	e.ServiceStateRequested.Describe(ch)
+	e.ServiceStateRestarting.Describe(ch)
+	e.ServiceStateRollingBack.Describe(ch)
+	e.ServiceStateUpdatingActive.Describe(ch)
+	e.ServiceStateUpdatingInactive.Describe(ch)
+	e.ServiceStateUpgraded.Describe(ch)
+	e.ServiceStateUpgrading.Describe(ch)
 }
 
 // Gets the JSON response from the API and places it in the struct
@@ -120,11 +216,23 @@ func getJSONservices(rancherURL string, accessKey string, secretKey string) (err
 func (e *Exporter) serviceScrape(rancherURL string, accessKey string, secretKey string, ch chan<- prometheus.Metric) error {
 	e.ServiceScale.Reset()
 	e.ServiceHealth.Reset()
-	e.ServiceStateHealthy.Reset()
-	e.ServiceStateUnhealthy.Reset()
-	e.ServiceStateUpdatingUnhealthy.Reset()
-	e.ServiceStateUpdatingHealthy.Reset()
-	e.ServiceStateInitializing.Reset()
+	e.ServiceStateActivating.Reset()
+	e.ServiceStateActive.Reset()
+	e.ServiceStateCanceledUpgrade.Reset()
+	e.ServiceStateCancelingUpgrade.Reset()
+	e.ServiceStateDeactivating.Reset()
+	e.ServiceStateFinishingUpgrade.Reset()
+	e.ServiceStateInactive.Reset()
+	e.ServiceStateRegistering.Reset()
+	e.ServiceStateRemoved.Reset()
+	e.ServiceStateRemoving.Reset()
+	e.ServiceStateRequested.Reset()
+	e.ServiceStateRestarting.Reset()
+	e.ServiceStateRollingBack.Reset()
+	e.ServiceStateUpdatingActive.Reset()
+	e.ServiceStateUpdatingInactive.Reset()
+	e.ServiceStateUpgraded.Reset()
+	e.ServiceStateUpgrading.Reset()
 
 	fmt.Println("Scraping: ", rancherURL+"/services/")
 	err, servicesData := getJSONservices(rancherURL+"/services/", accessKey, secretKey)
@@ -141,42 +249,79 @@ func (e *Exporter) serviceScrape(rancherURL string, accessKey string, secretKey 
 			ServiceHealthState = 1
 		}
 
-		var ServiceStateHealthy float64
-		var ServiceStateUnhealthy float64
-		var ServiceStateUpdatingUnhealthy float64
-		var ServiceStateUpdatingHealthy float64
-		var ServiceStateInitializing float64
+		var ServiceStateActivating float64
+		var ServiceStateActive float64
+		var ServiceStateCanceledUpgrade float64
+		var ServiceStateCancelingUpgrade float64
+		var ServiceStateDeactivating float64
+		var ServiceStateFinishingUpgrade float64
+		var ServiceStateInactive float64
+		var ServiceStateRegistering float64
+		var ServiceStateRemoved float64
+		var ServiceStateRemoving float64
+		var ServiceStateRequested float64
+		var ServiceStateRestarting float64
+		var ServiceStateRollingBack float64
+		var ServiceStateUpdatingActive float64
+		var ServiceStateUpdatingInactive float64
+		var ServiceStateUpgraded float64
+		var ServiceStateUpgrading float64
 
-		if x.State == "healthy" {
-			ServiceStateHealthy = 1
-
-		}
-
-		if x.State == "unhealthy" {
-			ServiceStateUnhealthy = 1
-		}
-
-		if x.State == "updating-healthy" {
-			ServiceStateUpdatingHealthy = 1
-		}
-
-		if x.State == "updating-unhealthy" {
-			ServiceStateUpdatingUnhealthy = 1
-		}
-
-		if x.State == "initializing" {
-			ServiceStateInitializing = 1
+		if x.State == "activating" {
+			ServiceStateActivating = 1
+		} else if x.State == "active" {
+			ServiceStateActive = 1
+		} else if x.State == "canceled-upgrade" {
+			ServiceStateCanceledUpgrade = 1
+		} else if x.State == "canceling-upgrade" {
+			ServiceStateCancelingUpgrade = 1
+		} else if x.State == "deactivasting" {
+			ServiceStateDeactivating = 1
+		} else if x.State == "finishing-upgrade" {
+			ServiceStateFinishingUpgrade = 1
+		} else if x.State == "inactive" {
+			ServiceStateInactive = 1
+		} else if x.State == "registering" {
+			ServiceStateRegistering = 1
+		} else if x.State == "removed" {
+			ServiceStateRemoved = 1
+		} else if x.State == "removing" {
+			ServiceStateRemoving = 1
+		} else if x.State == "requested" {
+			ServiceStateRequested = 1
+		} else if x.State == "restarting" {
+			ServiceStateRestarting = 1
+		} else if x.State == "rolling-back" {
+			ServiceStateRollingBack = 1
+		} else if x.State == "updating-active" {
+			ServiceStateUpdatingActive = 1
+		} else if x.State == "updating-inactive" {
+			ServiceStateUpdatingInactive = 1
+		} else if x.State == "upgraded" {
+			ServiceStateUpgraded = 1
+		} else if x.State == "upgrading" {
+			ServiceStateUpgrading = 1
 		}
 
 		e.ServiceHealth.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceHealthState)
 		e.ServiceScale.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(float64(x.Scale))
-		e.ServiceHealth.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceHealthState)
-		e.ServiceStateHealthy.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateHealthy)
-		e.ServiceStateUnhealthy.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateUnhealthy)
-		e.ServiceStateUpdatingUnhealthy.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateUpdatingUnhealthy)
-		e.ServiceStateUpdatingHealthy.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateUpdatingHealthy)
-		e.ServiceStateInitializing.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateInitializing)
-
+		e.ServiceStateActivating.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateActivating)
+		e.ServiceStateActive.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateActive)
+		e.ServiceStateCanceledUpgrade.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateCanceledUpgrade)
+		e.ServiceStateCancelingUpgrade.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateCancelingUpgrade)
+		e.ServiceStateDeactivating.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateDeactivating)
+		e.ServiceStateFinishingUpgrade.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateFinishingUpgrade)
+		e.ServiceStateInactive.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateInactive)
+		e.ServiceStateRegistering.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateRegistering)
+		e.ServiceStateRemoved.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateRemoved)
+		e.ServiceStateRemoving.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateRemoving)
+		e.ServiceStateRequested.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateRequested)
+		e.ServiceStateRestarting.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateRestarting)
+		e.ServiceStateRollingBack.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateRollingBack)
+		e.ServiceStateUpdatingActive.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateUpdatingActive)
+		e.ServiceStateUpdatingInactive.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateUpdatingInactive)
+		e.ServiceStateUpgraded.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateUpgraded)
+		e.ServiceStateUpgrading.With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceStateUpgrading)
 	}
 
 	return nil
@@ -193,9 +338,21 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 	e.ServiceScale.Collect(ch)
 	e.ServiceHealth.Collect(ch)
-	e.ServiceStateHealthy.Collect(ch)
-	e.ServiceStateUnhealthy.Collect(ch)
-	e.ServiceStateUpdatingUnhealthy.Collect(ch)
-	e.ServiceStateUpdatingHealthy.Collect(ch)
-	e.ServiceStateInitializing.Collect(ch)
+	e.ServiceStateActivating.Collect(ch)
+	e.ServiceStateActive.Collect(ch)
+	e.ServiceStateCanceledUpgrade.Collect(ch)
+	e.ServiceStateCancelingUpgrade.Collect(ch)
+	e.ServiceStateDeactivating.Collect(ch)
+	e.ServiceStateFinishingUpgrade.Collect(ch)
+	e.ServiceStateInactive.Collect(ch)
+	e.ServiceStateRegistering.Collect(ch)
+	e.ServiceStateRemoved.Collect(ch)
+	e.ServiceStateRemoving.Collect(ch)
+	e.ServiceStateRequested.Collect(ch)
+	e.ServiceStateRestarting.Collect(ch)
+	e.ServiceStateRollingBack.Collect(ch)
+	e.ServiceStateUpdatingActive.Collect(ch)
+	e.ServiceStateUpdatingInactive.Collect(ch)
+	e.ServiceStateUpgraded.Collect(ch)
+	e.ServiceStateUpgrading.Collect(ch)
 }
