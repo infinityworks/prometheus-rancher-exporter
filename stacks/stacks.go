@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -180,6 +181,7 @@ func getJSONstacks(rancherURL string, accessKey string, secretKey string) (error
 }
 
 func (e *Exporter) scrapeStacks(rancherURL string, accessKey string, secretKey string, ch chan<- prometheus.Metric) error {
+
 	e.StackHealth.Reset()
 	e.StackStateActivating.Reset()
 	e.StackStateActive.Reset()
@@ -196,11 +198,34 @@ func (e *Exporter) scrapeStacks(rancherURL string, accessKey string, secretKey s
 	e.StackStateUpgraded.Reset()
 	e.StackStateUpgrading.Reset()
 
-	fmt.Println("Scraping: ", rancherURL+"/stacks/")
-	err, stacksData := getJSONstacks(rancherURL+"/stacks/", accessKey, secretKey)
+	var stacksEndpoint string
+
+	if strings.Contains(rancherURL, "v1") {
+		fmt.Println("Version 1 API detected, using legacy API fields")
+		stacksEndpoint = "/environments/"
+
+	} else if strings.Contains(rancherURL, "v2") {
+		stacksEndpoint = "/stacls/"
+	}
+
+	fmt.Println("Scraping: ", rancherURL+stacksEndpoint)
+	err, stacksData := getJSONstacks(rancherURL+stacksEndpoint, accessKey, secretKey)
+
+	/*if strings.Contains(rancherURL, "v1") {
+		fmt.Println("Version 1 API detected, using legacy API fields")
+		fmt.Println("Scraping: ", rancherURL+"/environments/")
+		err, stacksData = getJSONstacks(rancherURL+"/environments/", accessKey, secretKey)
+	}
+	else if strings.Contains(rancherURL, "v2") {
+		fmt.Println("Scraping: ", rancherURL+"/stacks/")
+		err, stacksData = getJSONstacks(rancherURL+"/stacks/", accessKey, secretKey)
+	}
+	*/
+
 	if err != nil {
 		return err
 	}
+
 	fmt.Println("JSON Fetched for stacks: ", stacksData)
 
 	// Stack Metrics
