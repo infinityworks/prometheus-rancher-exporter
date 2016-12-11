@@ -38,6 +38,9 @@ var (
 func main() {
 
 	flag.Parse()
+	if rancherURL == "" {
+		log.Fatal("CATTLE_URL must be set and non-empty")
+	}
 	fmt.Println("Starting Prometheus Exporter for Rancher. Listen Address: ", listenAddress, "metricsPath: ", metricsPath, "rancherURL: ", rancherURL, "AccessKey: ", accessKey)
 	servicesExporter := services.NewExporter(rancherURL, accessKey, secretKey)
 	stacksExporter := stacks.NewExporter(rancherURL, accessKey, secretKey)
