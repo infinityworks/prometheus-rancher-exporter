@@ -1,15 +1,21 @@
-FROM gliderlabs/alpine:3.3
+FROM gliderlabs/alpine
 MAINTAINER infinityworksltd
 
-RUN apk-install nodejs
+EXPOSE 9110
 
-WORKDIR /app
+RUN addgroup exporter \
+ && adduser -S -G exporter exporter
 
-ADD app.js /app/
-ADD package.json /app/
-RUN npm install
+COPY . /go/src/github.com/infinityworksltd/prometheus-rancher-exporter
 
-ENV DEBUG re
-EXPOSE 9010
+RUN apk --update add ca-certificates \
+ && apk --update add --virtual build-deps go git \
+ && cd /go/src/github.com/infinityworksltd/prometheus-rancher-exporter \
+ && GOPATH=/go go get \
+ && GOPATH=/go go build -o /bin/rancher_exporter \
+ && apk del --purge build-deps \
+ && rm -rf /go/bin /go/pkg /var/cache/apk/*
 
-CMD ["npm", "start"]
+USER exporter
+
+ENTRYPOINT [ "/bin/rancher_exporter" ]
