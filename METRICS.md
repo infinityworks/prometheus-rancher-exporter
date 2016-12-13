@@ -1,24 +1,24 @@
 # Example Metrics
 
 ```
-# HELP rancher_host_state_activating State of defined host as reported by the Rancher API
-# TYPE rancher_host_state_activating gauge
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="activating"} 0
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="active"} 1
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="deactivating"} 0
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="error"} 0
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="erroring"} 0
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="inactive"} 0
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="provisioned"} 0
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="purged"} 0
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="purging"} 0
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="registering"} 0
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="removed"} 0
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="removing"} 0
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="requested"} 0
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="restoring"} 0
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="updating_active"} 0
-rancher_host_state_activating{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="updating_inactive"} 0
+# HELP rancher_host_state State of defined host as reported by the Rancher API
+# TYPE rancher_host_state gauge
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="activating"} 0
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="active"} 1
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="deactivating"} 0
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="error"} 0
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="erroring"} 0
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="inactive"} 0
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="provisioned"} 0
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="purged"} 0
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="purging"} 0
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="registering"} 0
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="removed"} 0
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="removing"} 0
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="requested"} 0
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="restoring"} 0
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="updating_active"} 0
+rancher_host_state{name="server.example.com",rancherURL="http://1.1.1.1:8080/v2-beta",state="updating_inactive"} 0
 # HELP rancher_service_health_status HealthState of the service, as reported by the Rancher API. Either (1) or (0)
 # TYPE rancher_service_health_status gauge
 rancher_service_health_status{name="rocketchat",rancherURL="http://1.1.1.1:8080/v2-beta"} 0
