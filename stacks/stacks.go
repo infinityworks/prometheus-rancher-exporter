@@ -41,90 +41,12 @@ func NewExporter(rancherURL string, accessKey string, secretKey string) *Exporte
 			Name:      "stack_health_state",
 			Help:      "HealthState of defined stack as reported by Rancher",
 		}, []string{"rancherURL", "name"})
-	gaugeVecs["StackStateActivating"] = prometheus.NewGaugeVec(
+	gaugeVecs["StackState"] = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "rancher",
-			Name:      "stack_state_activating",
+			Name:      "stack_state",
 			Help:      "State of defined stack as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["StackStateActive"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      "stack_state_active",
-			Help:      "State of defined stack as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["StackStateCanceledUpgrade"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      "stack_state_cancelled_upgrade",
-			Help:      "State of defined stack as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["StackStateCancelingUpgrade"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      "stack_state_canceling_upgrade",
-			Help:      "State of defined stack as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["StackStateError"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      "stack_state_error",
-			Help:      "State of defined stack as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["StackStateErroring"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      "stack_state_erroring",
-			Help:      "State of defined stack as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["StackStateFinishingUpgrade"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      "stack_state_finishing_upgrade",
-			Help:      "State of defined stack as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["StackStateRemoved"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      "stack_state_removed",
-			Help:      "State of defined stack as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["StackStateRemoving"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      "stack_state_removing",
-			Help:      "State of defined stack as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["StackStateRequested"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      "stack_state_requested",
-			Help:      "State of defined stack as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["StackStateRollingBack"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      "stack_state_rolling_back",
-			Help:      "State of defined stack as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["StackStateUpdatingActive"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      "stack_state_updating_active",
-			Help:      "State of defined stack as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["StackStateUpgraded"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      "stack_state_upgraded",
-			Help:      "State of defined stack as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["StackStateUpgrading"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      "stack_state_upgrading",
-			Help:      "State of defined stack as reported by Rancher",
-		}, []string{"rancherURL", "name"})
+		}, []string{"rancherURL", "name", "state"})
 
 	return &Exporter{
 		gaugeVecs:  gaugeVecs,
@@ -198,50 +120,50 @@ func (e *Exporter) scrapeStacks(rancherURL string, accessKey string, secretKey s
 		e.gaugeVecs["StackHealth"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(StackHealthState)
 
 		// Set all the metrics to 0, unless we get a match
-		e.gaugeVecs["StackStateActivating"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
-		e.gaugeVecs["StackStateActive"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
-		e.gaugeVecs["StackStateCanceledUpgrade"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
-		e.gaugeVecs["StackStateCancelingUpgrade"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
-		e.gaugeVecs["StackStateError"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
-		e.gaugeVecs["StackStateErroring"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
-		e.gaugeVecs["StackStateFinishingUpgrade"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
-		e.gaugeVecs["StackStateRemoved"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
-		e.gaugeVecs["StackStateRemoving"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
-		e.gaugeVecs["StackStateRequested"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
-		e.gaugeVecs["StackStateRollingBack"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
-		e.gaugeVecs["StackStateUpdatingActive"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
-		e.gaugeVecs["StackStateUpgraded"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
-		e.gaugeVecs["StackStateUpgrading"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
+		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "activating"}).Set(0)
+		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "active"}).Set(0)
+		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "canceled_upgrade"}).Set(0)
+		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "canceling_upgrade"}).Set(0)
+		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "error"}).Set(0)
+		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "erroring"}).Set(0)
+		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "finishing_upgrade"}).Set(0)
+		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "removed"}).Set(0)
+		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "removing"}).Set(0)
+		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "requested"}).Set(0)
+		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "rolling_back"}).Set(0)
+		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "updating_active"}).Set(0)
+		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "upgraded"}).Set(0)
+		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "upgrading"}).Set(0)
 
 		// Match states of the API to known values and override our values above.
 		if x.State == "activating" {
-			e.gaugeVecs["StackStateActivating"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
+			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "activating"}).Set(1)
 		} else if x.State == "active" {
-			e.gaugeVecs["StackStateActive"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
+			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "active"}).Set(1)
 		} else if x.State == "canceled-upgrade" {
-			e.gaugeVecs["StackStateCanceledUpgrade"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
+			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "canceled_upgrade"}).Set(1)
 		} else if x.State == "canceling-upgrade" {
-			e.gaugeVecs["StackStateCancelingUpgrade"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
+			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "canceling_upgrade"}).Set(1)
 		} else if x.State == "error" {
-			e.gaugeVecs["StackStateError"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
+			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "error"}).Set(1)
 		} else if x.State == "erroring" {
-			e.gaugeVecs["StackStateErroring"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
+			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state:": "erroring"}).Set(1)
 		} else if x.State == "finishing-upgrade" {
-			e.gaugeVecs["StackStateFinishingUpgrade"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
+			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "finishing_upgrade"}).Set(1)
 		} else if x.State == "removed" {
-			e.gaugeVecs["StackStateRemoved"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
+			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "removed"}).Set(1)
 		} else if x.State == "removing" {
-			e.gaugeVecs["StackStateRemoving"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
+			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "removing"}).Set(1)
 		} else if x.State == "requested" {
-			e.gaugeVecs["StackStateRequested"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
+			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "requested"}).Set(1)
 		} else if x.State == "rolling-back" {
-			e.gaugeVecs["StackStateRollingBack"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
+			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "rolling_back"}).Set(1)
 		} else if x.State == "updating-active" {
-			e.gaugeVecs["StackStateUpdatingActive"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
+			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "updating_active"}).Set(1)
 		} else if x.State == "upgraded" {
-			e.gaugeVecs["StackStateUpgraded"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
+			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "upgraded"}).Set(1)
 		} else if x.State == "upgrading" {
-			e.gaugeVecs["StackStateUpgrading"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
+			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "upgrading"}).Set(1)
 
 		}
 

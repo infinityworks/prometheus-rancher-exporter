@@ -33,102 +33,12 @@ func NewExporter(rancherURL string, accessKey string, secretKey string) *Exporte
 
 	gaugeVecs := make(map[string]*prometheus.GaugeVec)
 
-	gaugeVecs["HostStateActivating"] = prometheus.NewGaugeVec(
+	gaugeVecs["HostState"] = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "rancher",
 			Name:      ("host_state_activating"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStateActive"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_active"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStateDeactivating"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_deactivating"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStateError"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_error"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStateErroring"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_erroring"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStateInactive"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_inactive"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStateProvisioned"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_provisioned"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStatePurged"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_purged"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStatePurging"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_purging"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStateRegistering"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_registering"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStateRemoved"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_removed"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStateRemoving"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_removing"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStateRequested"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_requested"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStateRestoring"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_restoring"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStateUpdatingActive"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_updating_active"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
-	gaugeVecs["HostStateUpdatingInactive"] = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Namespace: "rancher",
-			Name:      ("host_state_updating_inactive"),
-			Help:      "State of defined host as reported by Rancher",
-		}, []string{"rancherURL", "name"})
+			Help:      "State of defined host as reported by the Rancher API",
+		}, []string{"rancherURL", "name", "state"})
 
 	return &Exporter{
 		gaugeVecs:  gaugeVecs,
@@ -182,56 +92,56 @@ func (e *Exporter) scrapeHosts(rancherURL string, accessKey string, secretKey st
 
 		// Set all the metrics to 0, unless we get a match
 
-		e.gaugeVecs["HostStateActivating"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStateActive"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStateDeactivating"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStateError"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStateErroring"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStateInactive"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStateProvisioned"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStatePurged"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStatePurging"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStateRegistering"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStateRemoved"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStateRemoving"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStateRequested"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStateRestoring"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStateUpdatingActive"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
-		e.gaugeVecs["HostStateUpdatingInactive"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "activating"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "active"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "deactivating"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "error"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "erroring"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "inactive"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "provisioned"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "purged"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "purging"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "registering"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "removed"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "removing"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "requested"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "restoring"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "updating_active"}).Set(0)
+		e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "updating_inactive"}).Set(0)
 
 		// Match states of the API to known values and override our values above.
 		if x.State == "activating" {
-			e.gaugeVecs["HostStateActivating"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "activating"}).Set(1)
 		} else if x.State == "active" {
-			e.gaugeVecs["HostStateActive"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "active"}).Set(1)
 		} else if x.State == "deactivating" {
-			e.gaugeVecs["HostStateDeactivating"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "deactivating"}).Set(1)
 		} else if x.State == "error" {
-			e.gaugeVecs["HostStateError"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "error"}).Set(1)
 		} else if x.State == "erroring" {
-			e.gaugeVecs["HostStateErroring"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "erroring"}).Set(1)
 		} else if x.State == "inactive" {
-			e.gaugeVecs["HostStateInactive"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "inactive"}).Set(1)
 		} else if x.State == "provisioned" {
-			e.gaugeVecs["HostStateProvisioned"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "provisioned"}).Set(1)
 		} else if x.State == "purged" {
-			e.gaugeVecs["HostStatePurged"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "purged"}).Set(1)
 		} else if x.State == "purging" {
-			e.gaugeVecs["HostStatePurging"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "purging"}).Set(1)
 		} else if x.State == "registering" {
-			e.gaugeVecs["HostStateRegistering"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "registering"}).Set(1)
 		} else if x.State == "removed" {
-			e.gaugeVecs["HostStateRemoved"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "removed"}).Set(1)
 		} else if x.State == "removing" {
-			e.gaugeVecs["HostStateRemoving"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "removing"}).Set(1)
 		} else if x.State == "requested" {
-			e.gaugeVecs["HostStateRequested"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "requested"}).Set(1)
 		} else if x.State == "restoring" {
-			e.gaugeVecs["HostStateRestoring"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "restoring"}).Set(1)
 		} else if x.State == "updating-active" {
-			e.gaugeVecs["HostStateUpdatingActive"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "updating_active"}).Set(1)
 		} else if x.State == "updating-inactive" {
-			e.gaugeVecs["HostStateUpdatingInactive"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname}).Set(1)
+			e.gaugeVecs["HostState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Hostname, "state": "updating_inactive"}).Set(1)
 		}
 
 	}
