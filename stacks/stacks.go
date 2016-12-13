@@ -38,7 +38,7 @@ func NewExporter(rancherURL string, accessKey string, secretKey string) *Exporte
 	gaugeVecs["StackHealth"] = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "rancher",
-			Name:      "stack_health_state",
+			Name:      "stack_health_status",
 			Help:      "HealthState of defined stack as reported by Rancher",
 		}, []string{"rancherURL", "name"})
 	gaugeVecs["StackState"] = prometheus.NewGaugeVec(
