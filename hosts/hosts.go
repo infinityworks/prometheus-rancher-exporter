@@ -36,7 +36,7 @@ func NewExporter(rancherURL string, accessKey string, secretKey string) *Exporte
 	gaugeVecs["HostState"] = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "rancher",
-			Name:      ("host_state_activating"),
+			Name:      ("host_state"),
 			Help:      "State of defined host as reported by the Rancher API",
 		}, []string{"rancherURL", "name", "state"})
 
