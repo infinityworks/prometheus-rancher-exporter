@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/infinityworksltd/prometheus-rancher-exporter/measure"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -32,7 +33,6 @@ type HostsData struct {
 func NewExporter(rancherURL string, accessKey string, secretKey string) *Exporter {
 
 	gaugeVecs := make(map[string]*prometheus.GaugeVec)
-
 	gaugeVecs["HostState"] = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "rancher",
@@ -59,6 +59,10 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 
 // Gets the JSON response from the API and places it in the struct
 func getJSONhosts(rancherURL string, accessKey string, secretKey string) (error, HostsData) {
+
+	// Counter for internal exporter metrics
+	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "hosts", "fnc": "getJSONhosts"}).Inc()
+
 	pulledData := HostsData{}
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", rancherURL, nil)
@@ -75,6 +79,9 @@ func getJSONhosts(rancherURL string, accessKey string, secretKey string) (error,
 }
 
 func (e *Exporter) scrapeHosts(rancherURL string, accessKey string, secretKey string, ch chan<- prometheus.Metric) error {
+
+	// Counter for internal exporter metrics
+	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "hosts", "fnc": "scrapeHosts"}).Inc()
 
 	for _, m := range e.gaugeVecs {
 		m.Reset()
@@ -152,6 +159,9 @@ func (e *Exporter) scrapeHosts(rancherURL string, accessKey string, secretKey st
 
 // Collect function, called on by Prometheus Client
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
+
+	// Counter for internal exporter metrics
+	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "hosts", "fnc": "Collect"}).Inc()
 
 	e.mutex.Lock() // To protect metrics from concurrent collects.
 	defer e.mutex.Unlock()

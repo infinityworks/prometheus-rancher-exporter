@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/infinityworksltd/prometheus-rancher-exporter/measure"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -74,6 +75,10 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 
 // Gets the JSON response from the API and places it in the struct
 func getJSONservices(rancherURL string, accessKey string, secretKey string) (error, ServicesData) {
+
+	// Counter for internal exporter metrics
+	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "services", "fnc": "getJSONservices"}).Inc()
+
 	pulledData := ServicesData{}
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", rancherURL, nil)
@@ -90,6 +95,9 @@ func getJSONservices(rancherURL string, accessKey string, secretKey string) (err
 }
 
 func (e *Exporter) serviceScrape(rancherURL string, accessKey string, secretKey string, ch chan<- prometheus.Metric) error {
+
+	// Counter for internal exporter metrics
+	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "services", "fnc": "serviceScrape"}).Inc()
 
 	for _, m := range e.gaugeVecs {
 		m.Reset()
@@ -176,6 +184,10 @@ func (e *Exporter) serviceScrape(rancherURL string, accessKey string, secretKey 
 
 // Collect function, called on by Prometheus Client
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
+
+	// Counter for internal exporter metrics
+	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "services", "fnc": "Collect"}).Inc()
+
 	e.mutex.Lock() // To protect metrics from concurrent collects.
 	defer e.mutex.Unlock()
 

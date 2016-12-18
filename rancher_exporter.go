@@ -5,13 +5,14 @@ import (
 	"net/http"
 	"os"
 
+	"fmt"
+
 	"github.com/infinityworksltd/prometheus-rancher-exporter/hosts"
 	"github.com/infinityworksltd/prometheus-rancher-exporter/services"
 	"github.com/infinityworksltd/prometheus-rancher-exporter/stacks"
-
-	"fmt"
-
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/infinityworksltd/prometheus-rancher-exporter/measure"
 	"github.com/prometheus/log"
 )
 
@@ -31,8 +32,8 @@ var (
 	metricsPath   = getenv("METRICS_PATH", "/metrics") //Path under which to expose metrics.
 	listenAddress = getenv("LISTEN_ADDRESS", ":9010")  // Address on which to expose metrics.
 	rancherURL    = os.Getenv("CATTLE_URL")            // URL of Rancher Server API e.g. http://192.168.0.1:8080/v2-beta
-	accessKey     = os.Getenv("CATTLE_ACCESS_KEY")     // Access Key for Rancher API
-	secretKey     = os.Getenv("CATTLE_SECRET_KEY")     // Secret Key for Rancher API
+	accessKey     = os.Getenv("CATTLE_ACCESS_KEY")     // Optional - Access Key for Rancher API
+	secretKey     = os.Getenv("CATTLE_SECRET_KEY")     // Optional - Secret Key for Rancher API
 )
 
 func main() {
@@ -41,10 +42,18 @@ func main() {
 	if rancherURL == "" {
 		log.Fatal("CATTLE_URL must be set and non-empty")
 	}
+
 	fmt.Println("Starting Prometheus Exporter for Rancher. Listen Address: ", listenAddress, "metricsPath: ", metricsPath, "rancherURL: ", rancherURL, "AccessKey: ", accessKey)
+
+	// Register internal metrics
+	measure.Init()
+
+	// Pass URL & Credentials out to the Exporters
 	servicesExporter := services.NewExporter(rancherURL, accessKey, secretKey)
 	stacksExporter := stacks.NewExporter(rancherURL, accessKey, secretKey)
 	hostsExporter := hosts.NewExporter(rancherURL, accessKey, secretKey)
+
+	// Register Metrics from each of the endpoints
 	prometheus.MustRegister(servicesExporter)
 	prometheus.MustRegister(stacksExporter)
 	prometheus.MustRegister(hostsExporter)
