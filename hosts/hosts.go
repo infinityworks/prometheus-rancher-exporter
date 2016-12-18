@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/infinityworksltd/prometheus-rancher-exporter/measure"
 	"github.com/prometheus/client_golang/prometheus"
@@ -58,10 +59,12 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 }
 
 // Gets the JSON response from the API and places it in the struct
-func getJSONhosts(rancherURL string, accessKey string, secretKey string) (error, HostsData) {
+func getJSON(rancherURL string, accessKey string, secretKey string) (error, HostsData) {
+
+	start := time.Now()
 
 	// Counter for internal exporter metrics
-	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "hosts", "fnc": "getJSONhosts"}).Inc()
+	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "hosts", "fnc": "getJSON"}).Inc()
 
 	pulledData := HostsData{}
 	client := &http.Client{}
@@ -74,21 +77,23 @@ func getJSONhosts(rancherURL string, accessKey string, secretKey string) (error,
 		fmt.Println("Error Collecting JSON from API: ", err)
 		panic(err)
 	}
+
+	// Timings recorded as part of internal metrics
+	elapsed := float64((time.Since(start)) / time.Microsecond)
+	measure.FunctionDurations.WithLabelValues("hosts", "getJSON").Observe(elapsed)
+
 	return json.NewDecoder(resp.Body).Decode(&pulledData), pulledData
 
 }
 
 func (e *Exporter) scrapeHosts(rancherURL string, accessKey string, secretKey string, ch chan<- prometheus.Metric) error {
 
-	// Counter for internal exporter metrics
-	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "hosts", "fnc": "scrapeHosts"}).Inc()
-
 	for _, m := range e.gaugeVecs {
 		m.Reset()
 	}
 
 	fmt.Println("Scraping: ", rancherURL+"/hosts/")
-	err, hostsData := getJSONhosts(rancherURL+"/hosts/", accessKey, secretKey)
+	err, hostsData := getJSON(rancherURL+"/hosts/", accessKey, secretKey)
 	if err != nil {
 		return err
 	}
@@ -159,9 +164,6 @@ func (e *Exporter) scrapeHosts(rancherURL string, accessKey string, secretKey st
 
 // Collect function, called on by Prometheus Client
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
-
-	// Counter for internal exporter metrics
-	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "hosts", "fnc": "Collect"}).Inc()
 
 	e.mutex.Lock() // To protect metrics from concurrent collects.
 	defer e.mutex.Unlock()

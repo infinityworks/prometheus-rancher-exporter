@@ -14,7 +14,7 @@ var (
 			Name:       "function_durations_seconds",
 			Help:       "Function timings for Rancher Exporter",
 			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
-		}, []string{"service"})
+		}, []string{"pkg", "fnc"})
 
 	// Create a counter to track total executions of the functions
 	FunctionCountTotal = prometheus.NewCounterVec(

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/infinityworksltd/prometheus-rancher-exporter/measure"
 	"github.com/prometheus/client_golang/prometheus"
@@ -67,10 +68,12 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 }
 
 // Gets the JSON response from the API and places it in the stacksData
-func getJSONstacks(collectionURL string, accessKey string, secretKey string) (error, StacksData) {
+func getJSON(collectionURL string, accessKey string, secretKey string) (error, StacksData) {
+
+	start := time.Now()
 
 	// Counter for internal exporter metrics
-	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "stacks", "fnc": "getJSONstacks"}).Inc()
+	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "stacks", "fnc": "getJSON"}).Inc()
 
 	pulledData := StacksData{}
 	client := &http.Client{}
@@ -83,14 +86,16 @@ func getJSONstacks(collectionURL string, accessKey string, secretKey string) (er
 		fmt.Println("Error Collecting JSON from API: ", err)
 		panic(err)
 	}
+
+	// Timings recorded as part of internal metrics
+	elapsed := float64((time.Since(start)) / time.Microsecond)
+	measure.FunctionDurations.WithLabelValues("stacks", "getJSON").Observe(elapsed)
+
 	return json.NewDecoder(resp.Body).Decode(&pulledData), pulledData
 
 }
 
 func (e *Exporter) scrapeStacks(rancherURL string, accessKey string, secretKey string, ch chan<- prometheus.Metric) error {
-
-	// Counter for internal exporter metrics
-	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "stacks", "fnc": "scrapeStacks"}).Inc()
 
 	for _, m := range e.gaugeVecs {
 		m.Reset()
@@ -111,7 +116,7 @@ func (e *Exporter) scrapeStacks(rancherURL string, accessKey string, secretKey s
 	}
 
 	fmt.Println("Scraping: ", rancherURL+stacksEndpoint)
-	err, stacksData := getJSONstacks(rancherURL+stacksEndpoint, accessKey, secretKey)
+	err, stacksData := getJSON(rancherURL+stacksEndpoint, accessKey, secretKey)
 	if err != nil {
 		return err
 	}
@@ -181,9 +186,6 @@ func (e *Exporter) scrapeStacks(rancherURL string, accessKey string, secretKey s
 // Collect function, called on by Prometheus Client
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
-	// Counter for internal exporter metrics
-	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "stacks", "fnc": "Collect"}).Inc()
-
 	e.mutex.Lock() // To protect metrics from concurrent collects.
 	defer e.mutex.Unlock()
 
@@ -194,4 +196,5 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	for _, m := range e.gaugeVecs {
 		m.Collect(ch)
 	}
+
 }
