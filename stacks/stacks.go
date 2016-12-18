@@ -23,8 +23,8 @@ type Exporter struct {
 	gaugeVecs  map[string]*prometheus.GaugeVec
 }
 
-// StacksData is used to store data from the stacks endpoint in the API
-type StacksData struct {
+// Data is used to store data from the stacks endpoint in the API
+type Data struct {
 	Data []struct {
 		HealthState string `json:"healthState"`
 		Name        string `json:"name"`
@@ -67,15 +67,15 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	}
 }
 
-// Gets the JSON response from the API and places it in the stacksData
-func getJSON(collectionURL string, accessKey string, secretKey string) (error, StacksData) {
+// Gets the JSON response from the API and places it in the Data
+func getJSON(collectionURL string, accessKey string, secretKey string) (error, Data) {
 
 	start := time.Now()
 
 	// Counter for internal exporter metrics
 	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "stacks", "fnc": "getJSON"}).Inc()
 
-	pulledData := StacksData{}
+	pulledData := Data{}
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", collectionURL, nil)
 	req.SetBasicAuth(accessKey, secretKey)
@@ -95,7 +95,7 @@ func getJSON(collectionURL string, accessKey string, secretKey string) (error, S
 
 }
 
-func (e *Exporter) scrapeStacks(rancherURL string, accessKey string, secretKey string, ch chan<- prometheus.Metric) error {
+func (e *Exporter) gatherMetrics(rancherURL string, accessKey string, secretKey string, ch chan<- prometheus.Metric) error {
 
 	for _, m := range e.gaugeVecs {
 		m.Reset()
@@ -116,67 +116,32 @@ func (e *Exporter) scrapeStacks(rancherURL string, accessKey string, secretKey s
 	}
 
 	fmt.Println("Scraping: ", rancherURL+stacksEndpoint)
-	err, stacksData := getJSON(rancherURL+stacksEndpoint, accessKey, secretKey)
+	err, Data := getJSON(rancherURL+stacksEndpoint, accessKey, secretKey)
 	if err != nil {
 		return err
 	}
-	fmt.Println("JSON Fetched for stacks: ", stacksData)
+	fmt.Println("JSON Fetched for stacks: ", Data)
 
 	// Stack Metrics
-	for _, x := range stacksData.Data {
+	for _, x := range Data.Data {
 
 		var StackHealthState float64
 		if x.HealthState == "healthy" {
 			StackHealthState = 1
 		}
+
 		e.gaugeVecs["StackHealth"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(StackHealthState)
 
-		// Set all the metrics to 0, unless we get a match
-		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "activating"}).Set(0)
-		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "active"}).Set(0)
-		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "canceled_upgrade"}).Set(0)
-		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "canceling_upgrade"}).Set(0)
-		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "error"}).Set(0)
-		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "erroring"}).Set(0)
-		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "finishing_upgrade"}).Set(0)
-		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "removed"}).Set(0)
-		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "removing"}).Set(0)
-		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "requested"}).Set(0)
-		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "rolling_back"}).Set(0)
-		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "updating_active"}).Set(0)
-		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "upgraded"}).Set(0)
-		e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "upgrading"}).Set(0)
+		// Pre-defines the known states from the Rancher API
+		states := []string{"activating", "active", "canceled_upgrade", "canceling_upgrade", "error", "erroring", "finishing_upgrade", "removed", "removing", "requested", "restarting", "rolling_back", "updating_active", "upgraded", "upgrading"}
 
-		// Match states of the API to known values and override our values above.
-		if x.State == "activating" {
-			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "activating"}).Set(1)
-		} else if x.State == "active" {
-			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "active"}).Set(1)
-		} else if x.State == "canceled-upgrade" {
-			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "canceled_upgrade"}).Set(1)
-		} else if x.State == "canceling-upgrade" {
-			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "canceling_upgrade"}).Set(1)
-		} else if x.State == "error" {
-			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "error"}).Set(1)
-		} else if x.State == "erroring" {
-			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state:": "erroring"}).Set(1)
-		} else if x.State == "finishing-upgrade" {
-			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "finishing_upgrade"}).Set(1)
-		} else if x.State == "removed" {
-			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "removed"}).Set(1)
-		} else if x.State == "removing" {
-			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "removing"}).Set(1)
-		} else if x.State == "requested" {
-			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "requested"}).Set(1)
-		} else if x.State == "rolling-back" {
-			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "rolling_back"}).Set(1)
-		} else if x.State == "updating-active" {
-			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "updating_active"}).Set(1)
-		} else if x.State == "upgraded" {
-			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "upgraded"}).Set(1)
-		} else if x.State == "upgrading" {
-			e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "upgrading"}).Set(1)
-
+		// Set the state of the service to 1 when it matches one of the known states
+		for _, y := range states {
+			if x.State == y {
+				e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": y}).Set(1)
+			} else {
+				e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": y}).Set(0)
+			}
 		}
 
 	}
@@ -189,7 +154,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	e.mutex.Lock() // To protect metrics from concurrent collects.
 	defer e.mutex.Unlock()
 
-	if err := e.scrapeStacks(e.rancherURL, e.accessKey, e.secretKey, ch); err != nil {
+	if err := e.gatherMetrics(e.rancherURL, e.accessKey, e.secretKey, ch); err != nil {
 		log.Printf("Error scraping rancher url: %s", err)
 		return
 	}

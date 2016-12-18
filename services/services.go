@@ -22,8 +22,8 @@ type Exporter struct {
 	gaugeVecs  map[string]*prometheus.GaugeVec
 }
 
-// ServicesData is used to store data from the services endpoint in the API
-type ServicesData struct {
+// Data is used to store data from the services endpoint in the API
+type Data struct {
 	Data []struct {
 		HealthState string `json:"healthState"`
 		Name        string `json:"name"`
@@ -75,14 +75,14 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 }
 
 // Gets the JSON response from the API and places it in the struct
-func getJSON(rancherURL string, accessKey string, secretKey string) (error, ServicesData) {
+func getJSON(rancherURL string, accessKey string, secretKey string) (error, Data) {
 
 	start := time.Now()
 
 	// Counter for internal exporter metrics
 	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "services", "fnc": "getJSON"}).Inc()
 
-	pulledData := ServicesData{}
+	pulledData := Data{}
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", rancherURL, nil)
 	req.SetBasicAuth(accessKey, secretKey)
@@ -99,24 +99,23 @@ func getJSON(rancherURL string, accessKey string, secretKey string) (error, Serv
 	measure.FunctionDurations.WithLabelValues("services", "getJSON").Observe(elapsed)
 
 	return json.NewDecoder(resp.Body).Decode(&pulledData), pulledData
-
 }
 
-func (e *Exporter) serviceScrape(rancherURL string, accessKey string, secretKey string, ch chan<- prometheus.Metric) error {
+func (e *Exporter) gatherMetrics(rancherURL string, accessKey string, secretKey string, ch chan<- prometheus.Metric) error {
 
 	for _, m := range e.gaugeVecs {
 		m.Reset()
 	}
 
 	fmt.Println("Scraping: ", rancherURL+"/services/")
-	err, servicesData := getJSON(rancherURL+"/services/", accessKey, secretKey)
+	err, Data := getJSON(rancherURL+"/services/", accessKey, secretKey)
 	if err != nil {
 		return err
 	}
-	fmt.Println("JSON Fetched for services: ", servicesData)
+	fmt.Println("JSON Fetched for services: ", Data)
 
 	// Service Metrics
-	for _, x := range servicesData.Data {
+	for _, x := range Data.Data {
 
 		var ServiceHealthState float64
 		if x.HealthState == "healthy" {
@@ -126,60 +125,16 @@ func (e *Exporter) serviceScrape(rancherURL string, accessKey string, secretKey 
 		e.gaugeVecs["ServiceHealth"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceHealthState)
 		e.gaugeVecs["ServiceScale"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(float64(x.Scale))
 
-		// Set all the metrics to 0, unless we get a match
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "activating"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "active"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "canceled_upgrade"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "canceling_upgrade"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "deactivasting"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "finishing_upgrade"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "inactive"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "registering"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "removed"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "removing"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "requested"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "restarting"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "rolling_back"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "updating_active"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "updating_inactive"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "upgraded"}).Set(0)
-		e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "upgrading"}).Set(0)
+		// Pre-defines the known states from the Rancher API
+		states := []string{"activating", "active", "canceled_upgrade", "canceling_upgrade", "deactivasting", "finishing_upgrade", "inactive", "registering", "removed", "removing", "requested", "restarting", "rolling_back", "updating_active", "updating_inactive", "upgraded", "upgrading"}
 
-		// Match states of the API to known values and override our values above.
-		if x.State == "activating" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "activating"}).Set(1)
-		} else if x.State == "active" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "active"}).Set(1)
-		} else if x.State == "canceled-upgrade" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "canceled_upgrade"}).Set(1)
-		} else if x.State == "canceling-upgrade" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "canceling_upgrade"}).Set(1)
-		} else if x.State == "deactivasting" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "deactivasting"}).Set(1)
-		} else if x.State == "finishing-upgrade" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "finishing_upgrade"}).Set(1)
-		} else if x.State == "inactive" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "inactive"}).Set(1)
-		} else if x.State == "registering" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "registering"}).Set(1)
-		} else if x.State == "removed" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "removed"}).Set(1)
-		} else if x.State == "removing" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "removing"}).Set(1)
-		} else if x.State == "requested" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "requested"}).Set(1)
-		} else if x.State == "restarting" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "restarting"}).Set(1)
-		} else if x.State == "rolling-back" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "rolling_back"}).Set(1)
-		} else if x.State == "updating-active" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "updating_active"}).Set(1)
-		} else if x.State == "updating-inactive" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "updating_inactive"}).Set(1)
-		} else if x.State == "upgraded" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "upgraded"}).Set(1)
-		} else if x.State == "upgrading" {
-			e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": "upgrading"}).Set(1)
+		// Set the state of the service to 1 when it matches one of the known states
+		for _, y := range states {
+			if x.State == y {
+				e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": y}).Set(1)
+			} else {
+				e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": y}).Set(0)
+			}
 		}
 
 	}
@@ -193,7 +148,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	e.mutex.Lock() // To protect metrics from concurrent collects.
 	defer e.mutex.Unlock()
 
-	if err := e.serviceScrape(e.rancherURL, e.accessKey, e.secretKey, ch); err != nil {
+	if err := e.gatherMetrics(e.rancherURL, e.accessKey, e.secretKey, ch); err != nil {
 		log.Printf("Error scraping rancher url: %s", err)
 		return
 	}
