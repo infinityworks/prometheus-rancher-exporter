@@ -2,11 +2,11 @@ package hosts
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/prometheus/log"
 
 	"github.com/infinityworksltd/prometheus-rancher-exporter/measure"
 	"github.com/prometheus/client_golang/prometheus"
@@ -74,7 +74,7 @@ func getJSON(rancherURL string, accessKey string, secretKey string) (error, Data
 	resp, err := client.Do(req)
 
 	if err != nil {
-		fmt.Println("Error Collecting JSON from API: ", err)
+		log.Error("Error Collecting JSON from API: ", err)
 		panic(err)
 	}
 
@@ -92,12 +92,12 @@ func (e *Exporter) gatherMetrics(rancherURL string, accessKey string, secretKey 
 		m.Reset()
 	}
 
-	fmt.Println("Scraping: ", rancherURL+"/hosts/")
+	log.Info("Scraping: ", rancherURL+"/hosts/")
 	err, Data := getJSON(rancherURL+"/hosts/", accessKey, secretKey)
 	if err != nil {
 		return err
 	}
-	fmt.Println("JSON Fetched for hosts: ", Data)
+	log.Info("JSON Fetched for hosts: ", Data)
 
 	// Host Metrics
 	for _, x := range Data.Data {
@@ -127,7 +127,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	defer e.mutex.Unlock()
 
 	if err := e.gatherMetrics(e.rancherURL, e.accessKey, e.secretKey, ch); err != nil {
-		log.Printf("Error scraping rancher url: %s", err)
+		log.Errorf("Error scraping rancher url: %s", err)
 		return
 	}
 

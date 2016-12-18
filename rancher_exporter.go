@@ -6,8 +6,6 @@ import (
 	"os"
 	"strconv"
 
-	"fmt"
-
 	"github.com/infinityworksltd/prometheus-rancher-exporter/hosts"
 	"github.com/infinityworksltd/prometheus-rancher-exporter/services"
 	"github.com/infinityworksltd/prometheus-rancher-exporter/stacks"
@@ -46,8 +44,8 @@ func main() {
 		log.Fatal("CATTLE_URL must be set and non-empty")
 	}
 
-	fmt.Println("Starting Prometheus Exporter for Rancher. Listen Address: ", listenAddress, "metricsPath: ", metricsPath, "rancherURL: ", rancherURL, "AccessKey: ", accessKey)
-	fmt.Println("System Services Reported on:", hideSys)
+	log.Info("Starting Prometheus Exporter for Rancher. Listen Address: ", listenAddress, " metricsPath: ", metricsPath, " rancherURL: ", rancherURL, " AccessKey: ", accessKey)
+	log.Info("System Services Reported on:", hideSys)
 
 	// Register internal metrics
 	measure.Init()

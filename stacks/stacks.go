@@ -2,14 +2,15 @@ package stacks
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
+	"github.com/prometheus/log"
+
+	"github.com/infinityworksltd/prometheus-rancher-exporter/compatibility"
 	"github.com/infinityworksltd/prometheus-rancher-exporter/measure"
+
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -86,7 +87,7 @@ func getJSON(collectionURL string, accessKey string, secretKey string) (error, D
 	resp, err := client.Do(req)
 
 	if err != nil {
-		fmt.Println("Error Collecting JSON from API: ", err)
+		log.Error("Error Collecting JSON from API: ", err)
 		panic(err)
 	}
 
@@ -104,26 +105,15 @@ func (e *Exporter) gatherMetrics(rancherURL string, accessKey string, secretKey 
 		m.Reset()
 	}
 
-	var stacksEndpoint string
+	// Check API version and return the correct URL path
+	stacksEndpoint := compatibility.StacksURLCheck(rancherURL)
 
-	if strings.Contains(rancherURL, "v1") {
-		fmt.Println("Version 1 API detected, using legacy API fields")
-		stacksEndpoint = "/environments/"
-
-	} else if strings.Contains(rancherURL, "v2") {
-		fmt.Println("Version 2 API detected, using updated API fields")
-		stacksEndpoint = "/stacks/"
-	} else {
-		fmt.Println("No known API version detected")
-		stacksEndpoint = "/stacks/"
-	}
-
-	fmt.Println("Scraping: ", rancherURL+stacksEndpoint)
+	log.Info("Scraping: ", rancherURL+stacksEndpoint)
 	err, Data := getJSON(rancherURL+stacksEndpoint, accessKey, secretKey)
 	if err != nil {
 		return err
 	}
-	fmt.Println("JSON Fetched for stacks: ", Data)
+	log.Info("JSON Fetched for stacks: ", Data)
 
 	// Stack Metrics
 	for _, x := range Data.Data {
@@ -163,7 +153,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	defer e.mutex.Unlock()
 
 	if err := e.gatherMetrics(e.rancherURL, e.accessKey, e.secretKey, e.hideSys, ch); err != nil {
-		log.Printf("Error scraping rancher url: %s", err)
+		log.Errorf("Error scraping rancher url: %s", err)
 		return
 	}
 	for _, m := range e.gaugeVecs {
