@@ -4,6 +4,7 @@ import (
 	"flag"
 	"net/http"
 	"os"
+	"strconv"
 
 	"fmt"
 
@@ -29,28 +30,31 @@ func getenv(key, fallback string) string {
 }
 
 var (
-	metricsPath   = getenv("METRICS_PATH", "/metrics") //Path under which to expose metrics.
+	metricsPath   = getenv("METRICS_PATH", "/metrics") // Path under which to expose metrics.
 	listenAddress = getenv("LISTEN_ADDRESS", ":9010")  // Address on which to expose metrics.
 	rancherURL    = os.Getenv("CATTLE_URL")            // URL of Rancher Server API e.g. http://192.168.0.1:8080/v2-beta
 	accessKey     = os.Getenv("CATTLE_ACCESS_KEY")     // Optional - Access Key for Rancher API
 	secretKey     = os.Getenv("CATTLE_SECRET_KEY")     // Optional - Secret Key for Rancher API
+
+	// hideSys - Optional - Flag that indicates if the environment variable `HIDE_SYS` is set to a boolean true value.
+	hideSys, _ = strconv.ParseBool(os.Getenv("HIDE_SYS"))
 )
 
 func main() {
-
 	flag.Parse()
 	if rancherURL == "" {
 		log.Fatal("CATTLE_URL must be set and non-empty")
 	}
 
 	fmt.Println("Starting Prometheus Exporter for Rancher. Listen Address: ", listenAddress, "metricsPath: ", metricsPath, "rancherURL: ", rancherURL, "AccessKey: ", accessKey)
+	fmt.Println("System Services Reported on:", hideSys)
 
 	// Register internal metrics
 	measure.Init()
 
 	// Pass URL & Credentials out to the Exporters
-	servicesExporter := services.NewExporter(rancherURL, accessKey, secretKey)
-	stacksExporter := stacks.NewExporter(rancherURL, accessKey, secretKey)
+	servicesExporter := services.NewExporter(rancherURL, accessKey, secretKey, hideSys)
+	stacksExporter := stacks.NewExporter(rancherURL, accessKey, secretKey, hideSys)
 	hostsExporter := hosts.NewExporter(rancherURL, accessKey, secretKey)
 
 	// Register Metrics from each of the endpoints
@@ -69,6 +73,7 @@ func main() {
 		                </html>
 		              `))
 	})
+
 	log.Infof("Starting Server: %s", listenAddress)
 	log.Fatal(http.ListenAndServe(listenAddress, nil))
 }

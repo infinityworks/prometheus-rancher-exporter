@@ -11,13 +11,14 @@ Details of how to set this are shown below in the example rancher-compose config
 The application, expects to get the following environment variables from the host, if you are using this externally to Rancher, or without the use of the labels to obtain an API key, you can update these values yourself, using environment variables.
 
 Required:
-* CATTLE_ACCESS_KEY
-* CATTLE_SECRET_KEY
-* CATTLE_URL
+* CATTLE_URL // Either provisioned through labels, or set by the user.
 
 Optional
-* METRICS_PATH  //Path under which to expose metrics.
+* CATTLE_ACCESS_KEY // Rancher API access Key, if supplied this will be used when authentication is enabled.
+* CATTLE_SECRET_KEY // Rancher API secret Key, if supplied this will be used when authentication is enabled.
+* METRICS_PATH  // Path under which to expose metrics.
 * LISTEN_ADDRESS // Port on which to expose metrics.
+* HIDE_SYS // If set to `true` then this hides any system services from being shown, e.g. metadata service
 
 ## Compatibility
 

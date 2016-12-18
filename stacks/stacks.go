@@ -19,6 +19,7 @@ type Exporter struct {
 	rancherURL string
 	accessKey  string
 	secretKey  string
+	hideSys    bool
 	mutex      sync.RWMutex
 	gaugeVecs  map[string]*prometheus.GaugeVec
 }
@@ -29,11 +30,12 @@ type Data struct {
 		HealthState string `json:"healthState"`
 		Name        string `json:"name"`
 		State       string `json:"state"`
+		System      bool   `json:"system"`
 	} `json:"data"`
 }
 
 //NewExporter creates the metrics we wish to monitor
-func NewExporter(rancherURL string, accessKey string, secretKey string) *Exporter {
+func NewExporter(rancherURL string, accessKey string, secretKey string, hideSys bool) *Exporter {
 
 	gaugeVecs := make(map[string]*prometheus.GaugeVec)
 
@@ -55,6 +57,7 @@ func NewExporter(rancherURL string, accessKey string, secretKey string) *Exporte
 		rancherURL: rancherURL,
 		accessKey:  accessKey,
 		secretKey:  secretKey,
+		hideSys:    hideSys,
 	}
 }
 
@@ -95,7 +98,7 @@ func getJSON(collectionURL string, accessKey string, secretKey string) (error, D
 
 }
 
-func (e *Exporter) gatherMetrics(rancherURL string, accessKey string, secretKey string, ch chan<- prometheus.Metric) error {
+func (e *Exporter) gatherMetrics(rancherURL string, accessKey string, secretKey string, hideSys bool, ch chan<- prometheus.Metric) error {
 
 	for _, m := range e.gaugeVecs {
 		m.Reset()
@@ -125,25 +128,30 @@ func (e *Exporter) gatherMetrics(rancherURL string, accessKey string, secretKey 
 	// Stack Metrics
 	for _, x := range Data.Data {
 
-		var StackHealthState float64
-		if x.HealthState == "healthy" {
-			StackHealthState = 1
-		}
+		// If system services have been ignored, the loop simply skips them
+		if hideSys == true && x.System == true {
+			continue
+		} else {
 
-		e.gaugeVecs["StackHealth"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(StackHealthState)
-
-		// Pre-defines the known states from the Rancher API
-		states := []string{"activating", "active", "canceled_upgrade", "canceling_upgrade", "error", "erroring", "finishing_upgrade", "removed", "removing", "requested", "restarting", "rolling_back", "updating_active", "upgraded", "upgrading"}
-
-		// Set the state of the service to 1 when it matches one of the known states
-		for _, y := range states {
-			if x.State == y {
-				e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": y}).Set(1)
+			// Get the healthy state for a stack
+			if x.HealthState == "healthy" {
+				e.gaugeVecs["StackHealth"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
 			} else {
-				e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": y}).Set(0)
+				e.gaugeVecs["StackHealth"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
+			}
+
+			// Pre-defines the known states from the Rancher API
+			states := []string{"activating", "active", "canceled_upgrade", "canceling_upgrade", "error", "erroring", "finishing_upgrade", "removed", "removing", "requested", "restarting", "rolling_back", "updating_active", "upgraded", "upgrading"}
+
+			// Set the state of the service to 1 when it matches one of the known states
+			for _, y := range states {
+				if x.State == y {
+					e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": y}).Set(1)
+				} else {
+					e.gaugeVecs["StackState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": y}).Set(0)
+				}
 			}
 		}
-
 	}
 	return nil
 }
@@ -154,7 +162,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	e.mutex.Lock() // To protect metrics from concurrent collects.
 	defer e.mutex.Unlock()
 
-	if err := e.gatherMetrics(e.rancherURL, e.accessKey, e.secretKey, ch); err != nil {
+	if err := e.gatherMetrics(e.rancherURL, e.accessKey, e.secretKey, e.hideSys, ch); err != nil {
 		log.Printf("Error scraping rancher url: %s", err)
 		return
 	}

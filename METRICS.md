@@ -1,5 +1,7 @@
 # Example Metrics
 
+Example of the metrics you could expect to see, returned for the service,stack and host states.
+
 ```
 # HELP rancher_host_state State of defined host as reported by the Rancher API
 # TYPE rancher_host_state gauge
@@ -63,4 +65,31 @@ rancher_stack_state{name="rocket-chat",rancherURL="http://1.1.1.1:8080/v2-beta",
 rancher_stack_state{name="rocket-chat",rancherURL="http://1.1.1.1:8080/v2-beta",state="updating_active"} 0
 rancher_stack_state{name="rocket-chat",rancherURL="http://1.1.1.1:8080/v2-beta",state="upgraded"} 0
 rancher_stack_state{name="rocket-chat",rancherURL="http://1.1.1.1:8080/v2-beta",state="upgrading"} 0
+```
+
+An example of the internal metrics to track the performance of the exporter, and useful as a basic example how to instrument your code.
+
+```
+# HELP function_count_totals total count of function calls
+# TYPE function_count_totals counter
+function_count_totals{fnc="getJSON",pkg="hosts"} 3
+function_count_totals{fnc="getJSON",pkg="services"} 3
+function_count_totals{fnc="getJSON",pkg="stacks"} 3
+# HELP function_durations_seconds Function timings for Rancher Exporter
+# TYPE function_durations_seconds summary
+function_durations_seconds{fnc="getJSON",pkg="hosts",quantile="0.5"} 33546
+function_durations_seconds{fnc="getJSON",pkg="hosts",quantile="0.9"} 59199
+function_durations_seconds{fnc="getJSON",pkg="hosts",quantile="0.99"} 59199
+function_durations_seconds_sum{fnc="getJSON",pkg="hosts"} 121502
+function_durations_seconds_count{fnc="getJSON",pkg="hosts"} 3
+function_durations_seconds{fnc="getJSON",pkg="services",quantile="0.5"} 49354
+function_durations_seconds{fnc="getJSON",pkg="services",quantile="0.9"} 63310
+function_durations_seconds{fnc="getJSON",pkg="services",quantile="0.99"} 63310
+function_durations_seconds_sum{fnc="getJSON",pkg="services"} 146519
+function_durations_seconds_count{fnc="getJSON",pkg="services"} 3
+function_durations_seconds{fnc="getJSON",pkg="stacks",quantile="0.5"} 45075
+function_durations_seconds{fnc="getJSON",pkg="stacks",quantile="0.9"} 59805
+function_durations_seconds{fnc="getJSON",pkg="stacks",quantile="0.99"} 59805
+function_durations_seconds_sum{fnc="getJSON",pkg="stacks"} 134789
+function_durations_seconds_count{fnc="getJSON",pkg="stacks"} 3
 ```

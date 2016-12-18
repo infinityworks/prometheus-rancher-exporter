@@ -18,6 +18,7 @@ type Exporter struct {
 	rancherURL string
 	accessKey  string
 	secretKey  string
+	hideSys    bool
 	mutex      sync.RWMutex
 	gaugeVecs  map[string]*prometheus.GaugeVec
 }
@@ -29,11 +30,12 @@ type Data struct {
 		Name        string `json:"name"`
 		Scale       int    `json:"scale"`
 		State       string `json:"state"`
+		System      bool   `json:"system"`
 	} `json:"data"`
 }
 
 //NewExporter creates the metrics we wish to monitor
-func NewExporter(rancherURL string, accessKey string, secretKey string) *Exporter {
+func NewExporter(rancherURL string, accessKey string, secretKey string, hideSys bool) *Exporter {
 
 	gaugeVecs := make(map[string]*prometheus.GaugeVec)
 
@@ -61,6 +63,7 @@ func NewExporter(rancherURL string, accessKey string, secretKey string) *Exporte
 		rancherURL: rancherURL,
 		accessKey:  accessKey,
 		secretKey:  secretKey,
+		hideSys:    hideSys,
 	}
 }
 
@@ -101,7 +104,7 @@ func getJSON(rancherURL string, accessKey string, secretKey string) (error, Data
 	return json.NewDecoder(resp.Body).Decode(&pulledData), pulledData
 }
 
-func (e *Exporter) gatherMetrics(rancherURL string, accessKey string, secretKey string, ch chan<- prometheus.Metric) error {
+func (e *Exporter) gatherMetrics(rancherURL string, accessKey string, secretKey string, hideSys bool, ch chan<- prometheus.Metric) error {
 
 	for _, m := range e.gaugeVecs {
 		m.Reset()
@@ -117,26 +120,33 @@ func (e *Exporter) gatherMetrics(rancherURL string, accessKey string, secretKey 
 	// Service Metrics
 	for _, x := range Data.Data {
 
-		var ServiceHealthState float64
-		if x.HealthState == "healthy" {
-			ServiceHealthState = 1
-		}
+		// If system services have been ignored, the loop simply skips them
+		if hideSys == true && x.System == true {
+			continue
+		} else {
 
-		e.gaugeVecs["ServiceHealth"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(ServiceHealthState)
-		e.gaugeVecs["ServiceScale"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(float64(x.Scale))
-
-		// Pre-defines the known states from the Rancher API
-		states := []string{"activating", "active", "canceled_upgrade", "canceling_upgrade", "deactivasting", "finishing_upgrade", "inactive", "registering", "removed", "removing", "requested", "restarting", "rolling_back", "updating_active", "updating_inactive", "upgraded", "upgrading"}
-
-		// Set the state of the service to 1 when it matches one of the known states
-		for _, y := range states {
-			if x.State == y {
-				e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": y}).Set(1)
+			// Get the Healthy State for a service
+			if x.HealthState == "healthy" {
+				e.gaugeVecs["ServiceHealth"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(1)
 			} else {
-				e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": y}).Set(0)
+				e.gaugeVecs["ServiceHealth"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(0)
+			}
+
+			// Set the scale of the service
+			e.gaugeVecs["ServiceScale"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name}).Set(float64(x.Scale))
+
+			// Pre-defines the known states from the Rancher API
+			states := []string{"activating", "active", "canceled_upgrade", "canceling_upgrade", "deactivasting", "finishing_upgrade", "inactive", "registering", "removed", "removing", "requested", "restarting", "rolling_back", "updating_active", "updating_inactive", "upgraded", "upgrading"}
+
+			// Set the state of the service to 1 when it matches one of the known states
+			for _, y := range states {
+				if x.State == y {
+					e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": y}).Set(1)
+				} else {
+					e.gaugeVecs["ServiceState"].With(prometheus.Labels{"rancherURL": rancherURL, "name": x.Name, "state": y}).Set(0)
+				}
 			}
 		}
-
 	}
 
 	return nil
@@ -148,7 +158,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	e.mutex.Lock() // To protect metrics from concurrent collects.
 	defer e.mutex.Unlock()
 
-	if err := e.gatherMetrics(e.rancherURL, e.accessKey, e.secretKey, ch); err != nil {
+	if err := e.gatherMetrics(e.rancherURL, e.accessKey, e.secretKey, e.hideSys, ch); err != nil {
 		log.Printf("Error scraping rancher url: %s", err)
 		return
 	}
