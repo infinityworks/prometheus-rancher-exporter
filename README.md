@@ -1,29 +1,34 @@
 # prometheus-rancher-exporter
 
-Exposes the health of stacks/services and hosts from the Rancher API, to a Prometheus compatible endpoint.
+Exposes the health of Stacks / Services and Hosts from the Rancher API, to a Prometheus compatible endpoint.
 
 
 ## Description
 
-This container can make use of Ranchers ability to assign API access to a container at runtime. This is achieved through labels to create a connection to the API.
-Details of how to set this are shown below in the example rancher-compose configuration. 
+The application can be run in a number of ways, the main consumption is the Docker hub image `infinityworksltd/prometheus-rancher-exporter`. 
 
-The application, expects to get the following environment variables from the host, if you are using this externally to Rancher, or without the use of the labels to obtain an API key, you can update these values yourself, using environment variables.
+The application requires at a minimum, the URL of the Rancher API. If you have authentication enabled on your Rancher server, the application will require a `RANCHER_ACCESS_KEY` and a `RANCHER_SECRET_KEY` providing.
 
-Required:
-* CATTLE_URL // Either provisioned through labels, or set by the user.
+If you are running the application in a Rancher managed container, you can make use of Rancher labels  to obtain an API key and auto-provision all of this information, details of this can be seen in the Docker Compose section.
 
-Optional
-* CATTLE_ACCESS_KEY // Rancher API access Key, if supplied this will be used when authentication is enabled.
-* CATTLE_SECRET_KEY // Rancher API secret Key, if supplied this will be used when authentication is enabled.
-* METRICS_PATH  // Path under which to expose metrics.
-* LISTEN_ADDRESS // Port on which to expose metrics.
-* HIDE_SYS // If set to `true` then this hides any system services from being shown, e.g. metadata service
+If you are using this externally to Rancher, or without the use of the labels to obtain an API key, you can update these values yourself, using environment variables.
+
+**Required**
+* `CATTLE_URL` // Either provisioned through labels, or set by the user. Should be in a format similar to `http://<YOUR_IP>:8080/v2-beta`.
+
+**Optional**
+* `CATTLE_ACCESS_KEY`   // Rancher API access Key, if supplied this will be used when authentication is enabled.
+* `CATTLE_SECRET_KEY`   // Rancher API secret Key, if supplied this will be used when authentication is enabled.
+* `METRICS_PATH`        // Path under which to expose metrics.
+* `LISTEN_ADDRESS`      // Port on which to expose metrics.
+* `HIDE_SYS`            // If set to `true` then this hides any of Ranchers internal system services from being shown.
 
 ## Compatibility
 
-Version 1.2 of Rancher introduced a new API, we took the oppertunity to re-write the exporter into Golang so it's more comparible to the platforms it's interacting with. 
-We've tested the exporter against both the V1 and V2-Beta API's available in Rancher 1.2, it should in theory work on older versions but we haven't had the chance to test. If you find any issues, bug reports or PR's are more than welcome.
+Along with the release of Rancher 1.2, a new API was introduced, the oppertunity was taken to re-write the exporter into Golang, so it's more comparible to the platforms it's interacting with. 
+Testing has focused on the `v1` and `v2-beta` available with Rancher 1.2.  The `v1` support should in theory work on older versions of Rancher Server but testing has been limited.
+
+If you find any issues, bug reports or PR's are more than welcome.
 
 ## Install and deploy
 
@@ -40,6 +45,7 @@ docker run -d -e CATTLE_ACCESS_KEY="XXXXXXXX" -e CATTLE_SECRET_KEY="XXXXXXX" -e 
 
 ## Docker compose
 
+For users running the container within a Rancher managed environment:
 ```
 prometheus-rancher-exporter:
     tty: true
@@ -52,10 +58,26 @@ prometheus-rancher-exporter:
     image: infinityworks/prometheus-rancher-exporter:latest
 ```
 
+For users running the container outside a Rancher managed environment:
+```
+prometheus-rancher-exporter:
+    tty: true
+    stdin_open: true
+    environment:
+      - CATTLE_ACCESS_KEY="xxxx"
+      - CATTLE_SECRET_KEY="xxxxxx"
+      - CATTLE_URL="http://<YOUR_IP>:8080/v2-beta"
+      - HIDE_SYS=true
+    expose:
+      - 9010:9010
+    image: infinityworks/prometheus-rancher-exporter:latest
+```
+
+
 ## Metrics
 
 Metrics will be made available on port 9010 by default, or you can pass environment variable ```LISTEN_ADDRESS``` to override this.
-An example printout of the metrics you should expect to see can be found in Metrics.md.
+An example printout of the metrics you should expect to see can be found in `METRICS.md`.
 
 
 ## Metadata
