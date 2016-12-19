@@ -1,14 +1,11 @@
 package hosts
 
 import (
-	"encoding/json"
-	"net/http"
 	"sync"
-	"time"
 
 	"github.com/prometheus/log"
 
-	"github.com/infinityworksltd/prometheus-rancher-exporter/measure"
+	"github.com/infinityworksltd/prometheus-rancher-exporter/utils"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -58,49 +55,28 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 	}
 }
 
-// Gets the JSON response from the API and places it in the struct
-func getJSON(rancherURL string, accessKey string, secretKey string) (error, Data) {
-
-	start := time.Now()
-
-	// Counter for internal exporter metrics
-	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "hosts", "fnc": "getJSON"}).Inc()
-
-	pulledData := Data{}
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", rancherURL, nil)
-	req.SetBasicAuth(accessKey, secretKey)
-
-	resp, err := client.Do(req)
-
-	if err != nil {
-		log.Error("Error Collecting JSON from API: ", err)
-		panic(err)
-	}
-
-	// Timings recorded as part of internal metrics
-	elapsed := float64((time.Since(start)) / time.Microsecond)
-	measure.FunctionDurations.WithLabelValues("hosts", "getJSON").Observe(elapsed)
-
-	return json.NewDecoder(resp.Body).Decode(&pulledData), pulledData
-
-}
-
 func (e *Exporter) gatherMetrics(rancherURL string, accessKey string, secretKey string, ch chan<- prometheus.Metric) error {
 
+	// Reset guageVecs back to 0
 	for _, m := range e.gaugeVecs {
 		m.Reset()
 	}
 
+	// Set the correct API endpoint for hosts
+	endpoint := (rancherURL + "/hosts/")
+
 	log.Info("Scraping: ", rancherURL+"/hosts/")
-	err, Data := getJSON(rancherURL+"/hosts/", accessKey, secretKey)
+	data := new(Data)
+	err := utils.GetJson(endpoint, accessKey, secretKey, &data)
+
 	if err != nil {
 		return err
 	}
-	log.Info("JSON Fetched for hosts: ", Data)
+
+	log.Info("JSON Fetched for hosts: ", data)
 
 	// Host Metrics
-	for _, x := range Data.Data {
+	for _, x := range data.Data {
 
 		// Pre-defines the known states from the Rancher API
 		states := []string{"activating", "active", "deactivating", "error", "erroring", "inactive", "provisioned", "purged", "purging", "registering", "removed", "removing", "requested", "restoring", "updating_active", "updating_inactive"}
