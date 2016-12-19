@@ -19,8 +19,11 @@ func GetJson(url string, accessKey string, secretKey string, target interface{})
 	// Counter for internal exporter metrics
 	measure.FunctionCountTotal.With(prometheus.Labels{"pkg": "utils", "fnc": "GetJson"}).Inc()
 
+	log.Info("Scraping: ", url)
+
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
+
 	req.SetBasicAuth(accessKey, secretKey)
 	resp, err := client.Do(req)
 

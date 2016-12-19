@@ -65,11 +65,12 @@ func (e *Exporter) gatherMetrics(rancherURL string, accessKey string, secretKey 
 	// Set the correct API endpoint for hosts
 	endpoint := (rancherURL + "/hosts/")
 
-	log.Info("Scraping: ", rancherURL+"/hosts/")
+	// Scrape EndPoint for JSON Data
 	data := new(Data)
 	err := utils.GetJson(endpoint, accessKey, secretKey, &data)
 
 	if err != nil {
+		log.Error("Error getting JSON from URL ", endpoint)
 		return err
 	}
 
