@@ -26,7 +26,7 @@ var (
 	start = time.Now()
 )
 
-// init registers the prometheus metrics for the measurement of the exporter itsself.
+// Init registers the prometheus metrics for the measurement of the exporter itsself.
 func Init() {
 
 	prometheus.MustRegister(FunctionDurations)

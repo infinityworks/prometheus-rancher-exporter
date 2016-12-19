@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/log"
 )
 
-// getJson return json from server
+// GetJson return json from server
 func GetJson(url string, accessKey string, secretKey string, target interface{}) error {
 
 	start := time.Now()
