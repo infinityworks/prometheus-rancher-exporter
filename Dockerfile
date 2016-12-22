@@ -1,7 +1,7 @@
 FROM gliderlabs/alpine
 MAINTAINER infinityworksltd
 
-EXPOSE 9110
+EXPOSE 9173
 
 RUN addgroup exporter \
  && adduser -S -G exporter exporter

@@ -34,13 +34,13 @@ If you find any issues, bug reports or PR's are more than welcome.
 
 Run manually from Docker Hub:
 ```
-docker run -d -e CATTLE_ACCESS_KEY="XXXXXXXX" -e CATTLE_SECRET_KEY="XXXXXXX" -e CATTLE_URL="http://<YOUR_IP>:8080/v2-beta" -p 9010:9010 infinityworks/prometheus-rancher-exporter
+docker run -d -e CATTLE_ACCESS_KEY="XXXXXXXX" -e CATTLE_SECRET_KEY="XXXXXXX" -e CATTLE_URL="http://<YOUR_IP>:8080/v2-beta" -p 9173:9173 infinityworks/prometheus-rancher-exporter
 ```
 
 Build a docker image:
 ```
 docker build -t <image-name> .
-docker run -d -e CATTLE_ACCESS_KEY="XXXXXXXX" -e CATTLE_SECRET_KEY="XXXXXXX" -e CATTLE_URL="http://<YOUR_IP>:8080/v2-beta" -p 9010:9010 <image-name>
+docker run -d -e CATTLE_ACCESS_KEY="XXXXXXXX" -e CATTLE_SECRET_KEY="XXXXXXX" -e CATTLE_URL="http://<YOUR_IP>:8080/v2-beta" -p 9173:9173 <image-name>
 ```
 
 ## Docker compose
@@ -54,7 +54,7 @@ prometheus-rancher-exporter:
       io.rancher.container.create_agent: true
       io.rancher.container.agent.role: environment
     expose:
-      - 9010:9010
+      - 9173:9173
     image: infinityworks/prometheus-rancher-exporter:latest
 ```
 
@@ -69,14 +69,14 @@ prometheus-rancher-exporter:
       - CATTLE_URL="http://<YOUR_IP>:8080/v2-beta"
       - HIDE_SYS=true
     expose:
-      - 9010:9010
+      - 9173:9173
     image: infinityworks/prometheus-rancher-exporter:latest
 ```
 
 
 ## Metrics
 
-Metrics will be made available on port 9010 by default, or you can pass environment variable ```LISTEN_ADDRESS``` to override this.
+Metrics will be made available on port 9173 by default, or you can pass environment variable ```LISTEN_ADDRESS``` to override this.
 An example printout of the metrics you should expect to see can be found in `METRICS.md`.
 
 
