@@ -22,6 +22,7 @@ func GetJson(url string, accessKey string, secretKey string, target interface{})
 	log.Info("Scraping: ", url)
 
 	client := &http.Client{}
+
 	req, err := http.NewRequest("GET", url, nil)
 
 	req.SetBasicAuth(accessKey, secretKey)
@@ -32,11 +33,17 @@ func GetJson(url string, accessKey string, secretKey string, target interface{})
 		panic(err)
 	}
 
+	respFormatted := json.NewDecoder(resp.Body).Decode(target)
+
 	// Timings recorded as part of internal metrics
 	elapsed := float64((time.Since(start)) / time.Microsecond)
 	measure.FunctionDurations.WithLabelValues("hosts", "getJSON").Observe(elapsed)
 
-	return json.NewDecoder(resp.Body).Decode(target)
+	// Close the response body, the underlying Transport should then close the connection.
+	resp.Body.Close()
+
+	// return formatted JSON
+	return respFormatted
 }
 
 // StacksURLCheck - Checks the API version for Rancher to determine the correct URL
