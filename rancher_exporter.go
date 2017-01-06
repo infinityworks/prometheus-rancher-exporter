@@ -18,13 +18,14 @@ const (
 
 // Runtime variables, user controllable for targeting, authentication and filtering.
 var (
-	metricsPath   = getEnv("METRICS_PATH", "/metrics")       // Path under which to expose metrics
-	listenAddress = getEnv("LISTEN_ADDRESS", ":9173")        // Address on which to expose metrics
-	rancherURL    = os.Getenv("CATTLE_URL")                  // URL of Rancher Server API e.g. http://192.168.0.1:8080/v2-beta
-	accessKey     = os.Getenv("CATTLE_ACCESS_KEY")           // Optional - Access Key for Rancher API
-	secretKey     = os.Getenv("CATTLE_SECRET_KEY")           // Optional - Secret Key for Rancher API
-	logLevel      = getEnv("LOG_LEVEL", "info")              // Optional - Set the logging level
-	hideSys, _    = strconv.ParseBool(os.Getenv("HIDE_SYS")) // hideSys - Optional - Flag that indicates if the environment variable `HIDE_SYS` is set to a boolean true value
+	metricsPath   = getEnv("METRICS_PATH", "/metrics") // Path under which to expose metrics
+	listenAddress = getEnv("LISTEN_ADDRESS", ":9173")  // Address on which to expose metrics
+	rancherURL    = os.Getenv("CATTLE_URL")            // URL of Rancher Server API e.g. http://192.168.0.1:8080/v2-beta
+	accessKey     = os.Getenv("CATTLE_ACCESS_KEY")     // Optional - Access Key for Rancher API
+	secretKey     = os.Getenv("CATTLE_SECRET_KEY")     // Optional - Secret Key for Rancher API
+	logLevel      = getEnv("LOG_LEVEL", "info")        // Optional - Set the logging level
+	//hideSys, _    = strconv.ParseBool(os.Getenv("HIDE_SYS")) // hideSys - Optional - Flag that indicates if the environment variable `HIDE_SYS` is set to a boolean true value
+	hideSys, _ = strconv.ParseBool(getEnv("HIDE_SYS", "true")) // hideSys - Optional - Flag that indicates if the environment variable `HIDE_SYS` is set to a boolean true value
 )
 
 // Predefined variables that are used throughout the exporter
@@ -59,7 +60,7 @@ func main() {
 	}
 
 	log.Info("Starting Prometheus Exporter for Rancher")
-	log.Info("Runtime Configuration in-use: URL of Rancher Server: ", rancherURL, " AccessKey: ", accessKey, "System Services Reported on: ", hideSys)
+	log.Info("Runtime Configuration in-use: URL of Rancher Server: ", rancherURL, " AccessKey: ", accessKey, "System Services hidden: ", hideSys)
 
 	// Register internal metrics used for tracking the exporter performance
 	measure.Init()
