@@ -1,4 +1,4 @@
-FROM gliderlabs/alpine
+FROM gliderlabs/alpine:3.4
 MAINTAINER infinityworksltd
 
 EXPOSE 9173

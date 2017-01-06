@@ -22,6 +22,7 @@ If you are using this externally to Rancher, or without the use of the labels to
 * `METRICS_PATH`        // Path under which to expose metrics.
 * `LISTEN_ADDRESS`      // Port on which to expose metrics.
 * `HIDE_SYS`            // If set to `true` then this hides any of Ranchers internal system services from being shown.
+*	`LOG_LEVEL`           // Optional - Set the logging level, defaults to Info
 
 ## Compatibility
 
