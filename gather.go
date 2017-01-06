@@ -178,6 +178,6 @@ func retrieveStackRef(stackID string) string {
 			return value
 		}
 	}
-	// returns unkown if no match was found
+	// returns unknown if no match was found
 	return "unknown"
 }
