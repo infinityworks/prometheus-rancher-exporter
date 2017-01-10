@@ -65,6 +65,8 @@ func checkMetric(endpoint string, baseType string) bool {
 	// Backwards compatibility fix, the API in V1 wrong, this is to cover v1 usage.
 	if baseType == "environment" && e == "stack" {
 		return true
+	} else if e == "service" && (baseType == "externalService" || baseType == "loadBalancerService") {
+		return true
 	} else if e != baseType {
 		log.Errorf("API MisMatch, expected %s metric, got %s metric", e, baseType)
 		return false
