@@ -24,6 +24,7 @@ type Data struct {
 		StackID     string `json:"stackId"`
 		EnvID       string `json:"environmentId"`
 		BaseType    string `json:"basetype"`
+		Type        string `json:"type"`
 	} `json:"data"`
 }
 
@@ -42,7 +43,11 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 		}
 
 		// Checks the metric is of the expected type
-		if checkMetric(endpoint, x.BaseType) == false {
+		dataType := x.BaseType
+		if dataType == "" {
+			dataType = x.Type
+		}
+		if checkMetric(endpoint, dataType) == false {
 			continue
 		}
 
