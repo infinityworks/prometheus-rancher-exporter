@@ -25,6 +25,7 @@ type Data struct {
 		EnvID       string `json:"environmentId"`
 		BaseType    string `json:"basetype"`
 		Type        string `json:"type"`
+		AgentState  string `json:"agentState"`
 	} `json:"data"`
 }
 
@@ -55,9 +56,9 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 
 		if endpoint == "hosts" {
 
-			if err := e.setHostMetrics(x.HostName, x.State); err != nil {
+			if err := e.setHostMetrics(x.HostName, x.State, x.AgentState); err != nil {
 				log.Errorf("Error processing host metrics: %s", err)
-				log.Errorf("Attempt Failed to set %s, %s ", x.HostName, x.State)
+				log.Errorf("Attempt Failed to set %s, %s, [agent] %s ", x.HostName, x.State, x.AgentState)
 
 				continue
 			}
