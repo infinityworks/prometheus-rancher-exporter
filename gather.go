@@ -148,7 +148,7 @@ func getJSON(url string, accessKey string, secretKey string, target interface{})
 
 	// Timings recorded as part of internal metrics
 	elapsed := float64((time.Since(start)) / time.Microsecond)
-	measure.FunctionDurations.WithLabelValues("hosts", "getJSON").Observe(elapsed)
+	measure.FunctionDurations.WithLabelValues("main", "getJSON").Observe(elapsed)
 
 	// Close the response body, the underlying Transport should then close the connection.
 	resp.Body.Close()
