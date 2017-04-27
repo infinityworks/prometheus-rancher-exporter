@@ -21,7 +21,7 @@ If you are using this externally to Rancher, or without the use of the labels to
 * `CATTLE_SECRET_KEY`   // Rancher API secret Key, if supplied this will be used when authentication is enabled.
 * `METRICS_PATH`        // Path under which to expose metrics.
 * `LISTEN_ADDRESS`      // Port on which to expose metrics.
-* `HIDE_SYS`            // If set to `true` then this hides any of Ranchers internal system services from being shown.
+* `HIDE_SYS`            // If set to `true` then this hides any of Ranchers internal system services from being shown. *If used, ensure `false` is encapsulated with quotes e.g. `HIDE_SYS="false"`.
 *	`LOG_LEVEL`           // Optional - Set the logging level, defaults to Info
 
 ## Compatibility
