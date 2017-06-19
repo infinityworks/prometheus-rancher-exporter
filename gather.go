@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
+	"strconv"
 	log "github.com/Sirupsen/logrus"
 	"github.com/infinityworksltd/prometheus-rancher-exporter/measure"
 	"github.com/prometheus/client_golang/prometheus"
@@ -69,9 +69,9 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 			// Later used as a dimension in service metrics
 			stackRef = storeStackRef(x.ID, x.Name)
 
-			if err := e.setStackMetrics(x.Name, x.State, x.HealthState); err != nil {
+			if err := e.setStackMetrics(x.Name, x.State, x.HealthState, strconv.FormatBool(x.System)); err != nil {
 				log.Errorf("Error processing stack metrics: %s", err)
-				log.Errorf("Attempt Failed to set %s, %s, %s ", x.Name, x.State, x.HealthState)
+				log.Errorf("Attempt Failed to set %s, %s, %s, %s", x.Name, x.State, x.HealthState, x.System)
 				continue
 			}
 
