@@ -7,7 +7,7 @@ import (
 	"time"
 	"strconv"
 	log "github.com/Sirupsen/logrus"
-	"github.com/infinityworksltd/prometheus-rancher-exporter/measure"
+	"github.com/infinityworks/prometheus-rancher-exporter/measure"
 	"github.com/prometheus/client_golang/prometheus"
 )
 

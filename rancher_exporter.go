@@ -9,7 +9,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/infinityworksltd/prometheus-rancher-exporter/measure"
+	"github.com/infinityworks/prometheus-rancher-exporter/measure"
 )
 
 const (
