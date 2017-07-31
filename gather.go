@@ -3,9 +3,10 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/infinityworks/prometheus-rancher-exporter/measure"
 	"github.com/prometheus/client_golang/prometheus"
@@ -55,8 +56,11 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 		log.Debug("Processing metrics for %s", endpoint)
 
 		if endpoint == "hosts" {
-
-			if err := e.setHostMetrics(x.HostName, x.State, x.AgentState); err != nil {
+			var s = x.HostName
+			if x.Name != "" {
+				s = x.Name
+			}
+			if err := e.setHostMetrics(s, x.State, x.AgentState); err != nil {
 				log.Errorf("Error processing host metrics: %s", err)
 				log.Errorf("Attempt Failed to set %s, %s, [agent] %s ", x.HostName, x.State, x.AgentState)
 
