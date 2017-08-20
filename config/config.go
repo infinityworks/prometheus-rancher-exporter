@@ -22,10 +22,12 @@ type Config struct {
 func Init() Config {
 	ac := cfg.Init()
 
-	var url = "http://rancher-metadata/latest/"
+	var url string
 
 	if os.Getenv("METADATA_URL") != "" {
 		url = os.Getenv("METADATA_URL")
+	} else {
+		url = "http://rancher-metadata/latest/"
 	}
 
 	hide := true
