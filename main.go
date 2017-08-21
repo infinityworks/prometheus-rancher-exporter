@@ -5,9 +5,10 @@ import (
 	"net/http"
 
 	"github.com/fatih/structs"
+	"github.com/infinityworks/go-common/logger"
 	"github.com/infinityworks/prometheus-rancher-exporter/config"
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 
 	im "github.com/infinityworks/go-common/metrics"
 	rm "github.com/infinityworks/prometheus-rancher-exporter/metrics"
@@ -15,6 +16,7 @@ import (
 
 var (
 	applicationCfg config.Config
+	eLogger        *logrus.Logger
 	rancherMetrics map[string]*prometheus.Desc
 )
 
@@ -27,10 +29,11 @@ type Exporter struct {
 func init() {
 	applicationCfg = config.Init()
 	rancherMetrics = rm.Return()
+	eLogger = logger.Start(&applicationCfg)
 }
 
 func main() {
-	log.WithFields(structs.Map(applicationCfg)).Info("Starting Prometheus Rancher Exporter")
+	eLogger.WithFields(structs.Map(applicationCfg)).Info("Starting Prometheus Rancher Exporter")
 
 	// Register internal metrics used for tracking the exporter performance
 	im.Init()
@@ -56,5 +59,5 @@ func main() {
 		                </html>
 		              `))
 	})
-	log.Fatal(http.ListenAndServe(port, nil))
+	eLogger.Fatal(http.ListenAndServe(port, nil))
 }
