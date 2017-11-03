@@ -17,7 +17,8 @@ FROM alpine:latest
 EXPOSE 9173
 
 RUN addgroup exporter \
- && adduser -S -G exporter exporter
+ && adduser -S -G exporter exporter \
+ && apk --no-cache add ca-certificates
 
 COPY --from=builder /bin/rancher_exporter /bin/rancher_exporter
 
