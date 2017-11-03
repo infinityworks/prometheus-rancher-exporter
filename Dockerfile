@@ -23,4 +23,4 @@ COPY --from=builder /bin/rancher_exporter .
 
 USER exporter
 
-ENTRYPOINT [ "rancher_exporter" ]
+ENTRYPOINT [ "/bin/rancher_exporter" ]
