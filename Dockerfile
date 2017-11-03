@@ -1,10 +1,6 @@
-FROM golang:1.9.1-alpine3.6
+FROM golang:1.9.1-alpine3.6 as builder
 LABEL maintainer="Infinity Works"
 
-EXPOSE 9173
-
-RUN addgroup exporter \
- && adduser -S -G exporter exporter
 
 COPY . /go/src/github.com/infinityworks/prometheus-rancher-exporter
 
@@ -16,6 +12,15 @@ RUN apk --update add ca-certificates \
  && apk del --purge build-deps \
  && rm -rf /go/bin /go/pkg /var/cache/apk/*
 
+FROM alpine:latest
+
+EXPOSE 9173
+
+RUN addgroup exporter \
+ && adduser -S -G exporter exporter
+
+COPY --from=builder /bin/rancher_exporter .
+
 USER exporter
 
-ENTRYPOINT [ "/bin/rancher_exporter" ]
+ENTRYPOINT [ "rancher_exporter" ]
