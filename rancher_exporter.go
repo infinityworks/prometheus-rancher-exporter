@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/infinityworks/prometheus-rancher-exporter/measure"
@@ -23,9 +23,9 @@ var (
 	rancherURL    = os.Getenv("CATTLE_URL")            // URL of Rancher Server API e.g. http://192.168.0.1:8080/v2-beta
 	accessKey     = os.Getenv("CATTLE_ACCESS_KEY")     // Optional - Access Key for Rancher API
 	secretKey     = os.Getenv("CATTLE_SECRET_KEY")     // Optional - Secret Key for Rancher API
-	logLevel      = getEnv("LOG_LEVEL", "info")        // Optional - Set the logging level
-	//hideSys, _    = strconv.ParseBool(os.Getenv("HIDE_SYS")) // hideSys - Optional - Flag that indicates if the environment variable `HIDE_SYS` is set to a boolean true value
-	hideSys, _ = strconv.ParseBool(getEnv("HIDE_SYS", "true")) // hideSys - Optional - Flag that indicates if the environment variable `HIDE_SYS` is set to a boolean true value
+	log           = logrus.New()
+	logLevel      = getEnv("LOG_LEVEL", "info")                   // Optional - Set the logging level
+	hideSys, _    = strconv.ParseBool(getEnv("HIDE_SYS", "true")) // hideSys - Optional - Flag that indicates if the environment variable `HIDE_SYS` is set to a boolean true value
 )
 
 // Predefined variables that are used throughout the exporter

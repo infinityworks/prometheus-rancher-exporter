@@ -1,5 +1,5 @@
-FROM gliderlabs/alpine:3.4
-MAINTAINER infinityworksltd
+FROM gliderlabs/alpine:3.6
+LABEL maintainer="Infinity Works"
 
 EXPOSE 9173
 

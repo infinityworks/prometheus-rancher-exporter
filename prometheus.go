@@ -1,7 +1,6 @@
 package main
 
 import (
-	log "github.com/Sirupsen/logrus"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -41,10 +40,9 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 		}
 
 		if err := e.processMetrics(data, p, e.hideSys, ch); err != nil {
-			log.Printf("Error scraping rancher url: %s", err)
+			log.Errorf("Error scraping rancher url: %s", err)
 			return
 		}
-
 		log.Infof("Metrics successfully processed for %s", p)
 
 	}

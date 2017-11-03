@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/infinityworks/prometheus-rancher-exporter/measure"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -75,7 +74,7 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 
 			if err := e.setStackMetrics(x.Name, x.State, x.HealthState, strconv.FormatBool(x.System)); err != nil {
 				log.Errorf("Error processing stack metrics: %s", err)
-				log.Errorf("Attempt Failed to set %s, %s, %s, %s", x.Name, x.State, x.HealthState, x.System)
+				log.Errorf("Attempt Failed to set %s, %s, %s, %t", x.Name, x.State, x.HealthState, x.System)
 				continue
 			}
 
@@ -120,7 +119,7 @@ func (e *Exporter) gatherData(rancherURL string, accessKey string, secretKey str
 	// Scrape EndPoint for JSON Data
 	err := getJSON(url, accessKey, secretKey, &data)
 	if err != nil {
-		log.Error("Error getting JSON from URL ", endpoint)
+		log.Error("Error getting JSON from endpoint ", endpoint)
 		return nil, err
 	}
 	log.Debugf("JSON Fetched for: "+endpoint+": ", data)
