@@ -19,7 +19,7 @@ EXPOSE 9173
 RUN addgroup exporter \
  && adduser -S -G exporter exporter
 
-COPY --from=builder /bin/rancher_exporter .
+COPY --from=builder /bin/rancher_exporter /bin/rancher_exporter
 
 USER exporter
 
