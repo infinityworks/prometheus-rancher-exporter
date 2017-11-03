@@ -1,4 +1,4 @@
-FROM gliderlabs/alpine:3.6
+FROM golang:1.9.1-alpine3.6
 LABEL maintainer="Infinity Works"
 
 EXPOSE 9173
