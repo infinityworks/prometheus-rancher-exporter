@@ -140,12 +140,16 @@ func getJSON(url string, accessKey string, secretKey string, target interface{})
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
+
+	if err != nil {
+		log.Error("Error Collecting JSON from API: ", err)
+	}
+
 	req.SetBasicAuth(accessKey, secretKey)
 	resp, err := client.Do(req)
 
 	if err != nil {
 		log.Error("Error Collecting JSON from API: ", err)
-		panic(err)
 	}
 
 	respFormatted := json.NewDecoder(resp.Body).Decode(target)
