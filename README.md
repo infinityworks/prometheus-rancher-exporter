@@ -5,7 +5,7 @@ Exposes the health of Stacks / Services and Hosts from the Rancher API, to a Pro
 
 ## Description
 
-The application can be run in a number of ways, the main consumption is the Docker hub image `infinityworksltd/prometheus-rancher-exporter`. 
+The application can be run in a number of ways, the main consumption is the Docker hub image `infinityworks/prometheus-rancher-exporter`.
 
 The application requires at a minimum, the URL of the Rancher API. If you have authentication enabled on your Rancher server, the application will require a `RANCHER_ACCESS_KEY` and a `RANCHER_SECRET_KEY` providing.
 
