@@ -172,7 +172,8 @@ func setEndpoint(rancherURL string, component string, apiVer string) string {
 	if strings.Contains(component, "services") {
 		endpoint = (rancherURL + "/services/")
 	} else if strings.Contains(component, "hosts") {
-		endpoint = (rancherURL + "/hosts/")
+	    endpoint = (rancherURL + "/hosts/")
+        endpoint = strings.Replace(endpoint, "v1", "v2-beta", 1)
 	} else if strings.Contains(component, "stacks") {
 
 		if apiVer == "v1" {
