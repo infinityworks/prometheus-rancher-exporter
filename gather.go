@@ -32,9 +32,6 @@ type Data struct {
 // processMetrics - Collects the data from the API, returns data object
 func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch chan<- prometheus.Metric) error {
 
-	// Used for backwards compatibility
-	apiVer := getAPIVersion(rancherURL)
-
 	// Metrics - range through the data object
 	for _, x := range data.Data {
 
@@ -81,12 +78,7 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 		} else if endpoint == "services" {
 
 			// Retrieves the stack Name from the previous values stored.
-			var stackName = ""
-			if apiVer == "v1" {
-				stackName = retrieveStackRef(x.EnvID)
-			} else {
-				stackName = retrieveStackRef(x.StackID)
-			}
+			var stackName = retrieveStackRef(x.StackID)
 
 			if stackName == "unknown" {
 				log.Warnf("Failed to obtain stack_name for %s from the API", x.Name)
@@ -109,9 +101,8 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 // gatherData - Collects the data from thw API, invokes functions to transform that data into metrics
 func (e *Exporter) gatherData(rancherURL string, accessKey string, secretKey string, endpoint string, ch chan<- prometheus.Metric) (*Data, error) {
 
-	// Check API version and return the correct URL path
-	apiVer := getAPIVersion(rancherURL)
-	url := setEndpoint(rancherURL, endpoint, apiVer)
+	// Return the correct URL path
+	url := setEndpoint(rancherURL, endpoint)
 
 	// Create new data slice from Struct
 	var data = new(Data)
@@ -165,46 +156,14 @@ func getJSON(url string, accessKey string, secretKey string, target interface{})
 }
 
 // setEndpoint - Determines the correct URL endpoint to use, gives us backwards compatibility
-func setEndpoint(rancherURL string, component string, apiVer string) string {
+func setEndpoint(rancherURL string, component string) string {
 
 	var endpoint string
 
-	if strings.Contains(component, "services") {
-		endpoint = (rancherURL + "/services/")
-	} else if strings.Contains(component, "hosts") {
-	    endpoint = (rancherURL + "/hosts/")
-        endpoint = strings.Replace(endpoint, "v1", "v2-beta", 1)
-	} else if strings.Contains(component, "stacks") {
-
-		if apiVer == "v1" {
-			endpoint = (rancherURL + "/environments/")
-		} else {
-			endpoint = (rancherURL + "/stacks/")
-		}
-	}
+	endpoint = (rancherURL + "/" + component + "/")
+    endpoint = strings.Replace(endpoint, "v1", "v2-beta", 1)
 
 	return endpoint
-}
-
-// getAPIVersion - Determines the API version in-use
-func getAPIVersion(rancherURL string) string {
-
-	var apiVer string
-
-	if strings.Contains(rancherURL, "v1") {
-		log.Debug("Version 1 API detected, using legacy API fields")
-		apiVer = ("v1")
-
-	} else if strings.Contains(rancherURL, "v2") {
-		log.Debug("Version 2 API detected, using legacy API fields")
-		apiVer = ("v2")
-
-	} else {
-		log.Info("Unknown API version detected, defaulting to v2")
-		apiVer = ("v2")
-	}
-
-	return apiVer
 }
 
 // storeStackRef stores the stackID and stack name for use as a label elsewhere
