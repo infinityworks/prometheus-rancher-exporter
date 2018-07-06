@@ -142,7 +142,7 @@ func getJSON(url string, accessKey string, secretKey string, target interface{})
 		log.Error("Error Collecting JSON from API: ", err)
 	}
 
-	if resp.Status != "200" {
+	if ! strings.Contains(resp.Status, "200") {
 		log.Error("Error returned from API: ",resp.Status) 	
 	}	
 	
