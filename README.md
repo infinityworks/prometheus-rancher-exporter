@@ -22,8 +22,8 @@ If you are using this externally to Rancher, or without the use of the labels to
 * `METRICS_PATH`        // Path under which to expose metrics.
 * `LISTEN_ADDRESS`      // Port on which to expose metrics.
 * `HIDE_SYS`            // If set to `true` then this hides any of Ranchers internal system services from being shown. *If used, ensure `false` is encapsulated with quotes e.g. `HIDE_SYS="false"`.
-* `LABELS_FILTER`       // Regular expression for filtering service and host labels, defaults to `.*`.
-*	`LOG_LEVEL`           // Optional - Set the logging level, defaults to Info.
+* `LABELS_FILTER`       // Optional regular expression for filtering service and host labels, defaults to `.*`.
+* `LOG_LEVEL`           // Optional - Set the logging level, defaults to Info.
 
 ## Compatibility
 
@@ -69,7 +69,7 @@ prometheus-rancher-exporter:
       - CATTLE_ACCESS_KEY="xxxx"
       - CATTLE_SECRET_KEY="xxxxxx"
       - CATTLE_URL="http://<YOUR_IP>:8080/v2-beta"
-      - LABELS_FILTER="^service|env|group$"
+      - LABELS_FILTER="^io.prometheus.service|env|group$"
       - HIDE_SYS=true
     expose:
       - 9173:9173
