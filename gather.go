@@ -113,7 +113,7 @@ func (e *Exporter) gatherData(rancherURL string, accessKey string, secretKey str
 		log.Error("Error getting JSON from endpoint ", endpoint)
 		return nil, err
 	}
-	log.Debugf("JSON Fetched for: "+endpoint+": ", data)
+	log.Debugf("JSON Fetched for: "+endpoint+": %+v", data)
 
 	return data, err
 }
