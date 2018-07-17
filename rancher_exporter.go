@@ -37,7 +37,6 @@ var (
 	healthStates  = []string{"healthy", "unhealthy", "initializing", "degraded", "started-once"}
 	endpoints     = []string{"stacks", "services", "hosts"} // EndPoints the exporter will trawl
 	stackRef      = make(map[string]string)                 // Stores the StackID and StackName as a map, used to provide label dimensions to service metrics
-
 )
 
 // getEnv - Allows us to supply a fallback option if nothing specified
@@ -67,11 +66,11 @@ func main() {
 	measure.Init()
 
 	// Register a new Exporter
-	Exporter := newExporter(rancherURL, accessKey, secretKey, hideSys)
+	exporter := newExporter(rancherURL, accessKey, secretKey, hideSys)
 
 	// Register Metrics from each of the endpoints
 	// This invokes the Collect method through the prometheus client libraries.
-	prometheus.MustRegister(Exporter)
+	prometheus.MustRegister(exporter)
 
 	// Setup HTTP handler
 	http.Handle(metricsPath, prometheus.Handler())
