@@ -42,7 +42,7 @@ func addMetrics() map[string]*prometheus.GaugeVec {
 			Namespace: namespace,
 			Name:      "service_scale",
 			Help:      "scale of defined service as reported by Rancher",
-		}, []string{"name", "stack_name"})
+		}, []string{"name", "stack_name", "labels"})
 	gaugeVecs["servicesHealth"] = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: namespace,
@@ -93,7 +93,11 @@ func checkMetric(endpoint string, baseType string) bool {
 // setServiceMetrics - Logic to set the state of a system as a gauge metric
 func (e *Exporter) setServiceMetrics(name string, stack string, state string, health string, scale int, labels map[string]string) error {
 	labelsStr := joinLabels(labels)
-	e.gaugeVecs["servicesScale"].With(prometheus.Labels{"name": name, "stack_name": stack}).Set(float64(scale))
+	e.gaugeVecs["servicesScale"].With(prometheus.Labels{
+		"name":       name,
+		"stack_name": stack,
+		"labels":     labelsStr,
+	}).Set(float64(scale))
 	for _, y := range healthStates {
 		gauge := e.gaugeVecs["servicesHealth"].With(prometheus.Labels{
 			"name":         name,
