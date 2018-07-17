@@ -4,6 +4,7 @@ import (
 	"flag"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 
 	"github.com/Sirupsen/logrus"
@@ -18,12 +19,14 @@ const (
 
 // Runtime variables, user controllable for targeting, authentication and filtering.
 var (
-	metricsPath   = getEnv("METRICS_PATH", "/metrics") // Path under which to expose metrics
-	listenAddress = getEnv("LISTEN_ADDRESS", ":9173")  // Address on which to expose metrics
-	rancherURL    = os.Getenv("CATTLE_URL")            // URL of Rancher Server API e.g. http://192.168.0.1:8080/v2-beta
-	accessKey     = os.Getenv("CATTLE_ACCESS_KEY")     // Optional - Access Key for Rancher API
-	secretKey     = os.Getenv("CATTLE_SECRET_KEY")     // Optional - Secret Key for Rancher API
-	log           = logrus.New()
+	log = logrus.New()
+
+	metricsPath   = getEnv("METRICS_PATH", "/metrics")            // Path under which to expose metrics
+	listenAddress = getEnv("LISTEN_ADDRESS", ":9173")             // Address on which to expose metrics
+	rancherURL    = os.Getenv("CATTLE_URL")                       // URL of Rancher Server API e.g. http://192.168.0.1:8080/v2-beta
+	accessKey     = os.Getenv("CATTLE_ACCESS_KEY")                // Optional - Access Key for Rancher API
+	secretKey     = os.Getenv("CATTLE_SECRET_KEY")                // Optional - Secret Key for Rancher API
+	labelsFilter  = os.Getenv("LABELS_FILTER")                    // Optional - Filter for Rancher label names
 	logLevel      = getEnv("LOG_LEVEL", "info")                   // Optional - Set the logging level
 	hideSys, _    = strconv.ParseBool(getEnv("HIDE_SYS", "true")) // hideSys - Optional - Flag that indicates if the environment variable `HIDE_SYS` is set to a boolean true value
 )
@@ -59,14 +62,32 @@ func main() {
 		log.Fatal("CATTLE_URL must be set and non-empty")
 	}
 
+	if labelsFilter == "" {
+		labelsFilter = ".*"
+	}
+
+	labelsFilterRegexp, err := regexp.Compile(labelsFilter)
+	if err != nil {
+		log.Fatal("LABELS_FILTER must be valid regular expression")
+	}
+
 	log.Info("Starting Prometheus Exporter for Rancher")
-	log.Info("Runtime Configuration in-use: URL of Rancher Server: ", rancherURL, " AccessKey: ", accessKey, "System Services hidden: ", hideSys)
+	log.Info(
+		"Runtime Configuration in-use: URL of Rancher Server: ",
+		rancherURL,
+		" Access key: ",
+		accessKey,
+		" System services hidden: ",
+		hideSys,
+		" Labels filter: ",
+		labelsFilter,
+	)
 
 	// Register internal metrics used for tracking the exporter performance
 	measure.Init()
 
 	// Register a new Exporter
-	exporter := newExporter(rancherURL, accessKey, secretKey, hideSys)
+	exporter := newExporter(rancherURL, accessKey, secretKey, labelsFilterRegexp, hideSys)
 
 	// Register Metrics from each of the endpoints
 	// This invokes the Collect method through the prometheus client libraries.
