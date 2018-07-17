@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	namespace = "rancher" // Used to prepand Prometheus metrics created by this exporter.
+	namespace           = "rancher" // Used to prepand Prometheus metrics created by this exporter.
+	defaultLabelsFilter = "^io.prometheus"
 )
 
 // Runtime variables, user controllable for targeting, authentication and filtering.
@@ -63,7 +64,7 @@ func main() {
 	}
 
 	if labelsFilter == "" {
-		labelsFilter = ".*"
+		labelsFilter = defaultLabelsFilter
 	}
 
 	labelsFilterRegexp, err := regexp.Compile(labelsFilter)
