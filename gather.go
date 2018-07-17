@@ -49,7 +49,7 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 			continue
 		}
 
-		log.Debug("Processing metrics for %s", endpoint)
+		log.Debugf("Processing metrics for %s", endpoint)
 
 		if endpoint == "hosts" {
 			var s = x.HostName
@@ -142,10 +142,10 @@ func getJSON(url string, accessKey string, secretKey string, target interface{})
 		log.Error("Error Collecting JSON from API: ", err)
 	}
 
-	if ! strings.Contains(resp.Status, "200") {
-		log.Error("Error returned from API: ",resp.Status) 	
-	}	
-	
+	if !strings.Contains(resp.Status, "200") {
+		log.Error("Error returned from API: ", resp.Status)
+	}
+
 	respFormatted := json.NewDecoder(resp.Body).Decode(target)
 
 	// Timings recorded as part of internal metrics
@@ -165,7 +165,7 @@ func setEndpoint(rancherURL string, component string) string {
 	var endpoint string
 
 	endpoint = (rancherURL + "/" + component + "/")
-    endpoint = strings.Replace(endpoint, "v1", "v2-beta", 1)
+	endpoint = strings.Replace(endpoint, "v1", "v2-beta", 1)
 
 	return endpoint
 }
