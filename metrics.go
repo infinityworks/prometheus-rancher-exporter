@@ -8,7 +8,6 @@ import (
 
 // addMetrics - Add's all of the GuageVecs to the `guageVecs` map, returns the map.
 func addMetrics() map[string]*prometheus.GaugeVec {
-
 	gaugeVecs := make(map[string]*prometheus.GaugeVec)
 
 	// Stack Metrics
@@ -64,7 +63,6 @@ func addMetrics() map[string]*prometheus.GaugeVec {
 
 // checkMetric - Checks the base type stored in the API is correct, this ensures we are setting the right metric for the right endpoint.
 func checkMetric(endpoint string, baseType string) bool {
-
 	e := strings.TrimSuffix(endpoint, "s")
 
 	// Backwards compatibility fix, the API in V1 wrong, this is to cover v1 usage.
@@ -78,12 +76,10 @@ func checkMetric(endpoint string, baseType string) bool {
 	}
 
 	return true
-
 }
 
 // setServiceMetrics - Logic to set the state of a system as a gauge metric
 func (e *Exporter) setServiceMetrics(name string, stack string, state string, health string, scale int) error {
-
 	e.gaugeVecs["servicesScale"].With(prometheus.Labels{"name": name, "stack_name": stack}).Set(float64(scale))
 
 	for _, y := range healthStates {
@@ -103,7 +99,6 @@ func (e *Exporter) setServiceMetrics(name string, stack string, state string, he
 
 	}
 	return nil
-
 }
 
 // setStackMetrics - Logic to set the state of a system as a gauge metric
@@ -128,7 +123,6 @@ func (e *Exporter) setStackMetrics(name string, state string, health string, sys
 
 // setHostMetrics - Logic to set the state of a system as a gauge metric
 func (e *Exporter) setHostMetrics(name string, state, agentState string) error {
-
 	for _, y := range hostStates {
 		if state == y {
 			e.gaugeVecs["hostsState"].With(prometheus.Labels{"name": name, "state": y}).Set(1)

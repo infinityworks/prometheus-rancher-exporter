@@ -18,7 +18,6 @@ type Exporter struct {
 
 // NewExporter creates the metrics we wish to monitor
 func newExporter(rancherURL string, accessKey string, secretKey string, hideSys bool) *Exporter {
-
 	gaugeVecs := addMetrics()
 	return &Exporter{
 		gaugeVecs:  gaugeVecs,

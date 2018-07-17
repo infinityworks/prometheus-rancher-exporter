@@ -14,18 +14,19 @@ import (
 // Data is used to store data from all the relevant endpoints in the API
 type Data struct {
 	Data []struct {
-		HealthState string `json:"healthState"`
-		Name        string `json:"name"`
-		State       string `json:"state"`
-		System      bool   `json:"system"`
-		Scale       int    `json:"scale"`
-		HostName    string `json:"hostname"`
-		ID          string `json:"id"`
-		StackID     string `json:"stackId"`
-		EnvID       string `json:"environmentId"`
-		BaseType    string `json:"basetype"`
-		Type        string `json:"type"`
-		AgentState  string `json:"agentState"`
+		HealthState string            `json:"healthState"`
+		Name        string            `json:"name"`
+		State       string            `json:"state"`
+		System      bool              `json:"system"`
+		Scale       int               `json:"scale"`
+		HostName    string            `json:"hostname"`
+		ID          string            `json:"id"`
+		StackID     string            `json:"stackId"`
+		EnvID       string            `json:"environmentId"`
+		BaseType    string            `json:"basetype"`
+		Type        string            `json:"type"`
+		AgentState  string            `json:"agentState"`
+		Labels      map[string]string `json:"labels"`
 	} `json:"data"`
 }
 
