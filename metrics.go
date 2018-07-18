@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -9,11 +10,14 @@ import (
 
 func joinLabels(labels map[string]string) string {
 	var result string
+	var labelsArray []string
 	for name, val := range labels {
-		result += fmt.Sprintf(",%s=%s", name, val)
+		labelsArray = append(labelsArray, fmt.Sprintf("%s=%s", name, val))
 	}
-	if len(result) > 0 {
-		result += ","
+	if len(labelsArray) > 0 {
+		// Sort for same order
+		sort.Strings(labelsArray)
+		result = fmt.Sprintf(",%s,", strings.Join(labelsArray, ","))
 	}
 	return result
 }

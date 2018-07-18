@@ -69,7 +69,6 @@ prometheus-rancher-exporter:
       - CATTLE_ACCESS_KEY="xxxx"
       - CATTLE_SECRET_KEY="xxxxxx"
       - CATTLE_URL="http://<YOUR_IP>:8080/v2-beta"
-      - LABELS_FILTER="^io.prometheus.service|env|group$"
       - HIDE_SYS=true
     expose:
       - 9173:9173
