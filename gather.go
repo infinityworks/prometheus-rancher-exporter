@@ -14,27 +14,34 @@ import (
 // Data is used to store data from all the relevant endpoints in the API
 type Data struct {
 	Data []struct {
-		HealthState string `json:"healthState"`
-		Name        string `json:"name"`
-		State       string `json:"state"`
-		System      bool   `json:"system"`
-		Scale       int    `json:"scale"`
-		HostName    string `json:"hostname"`
-		ID          string `json:"id"`
-		StackID     string `json:"stackId"`
-		EnvID       string `json:"environmentId"`
-		BaseType    string `json:"basetype"`
-		Type        string `json:"type"`
-		AgentState  string `json:"agentState"`
+		HealthState string            `json:"healthState"`
+		Name        string            `json:"name"`
+		State       string            `json:"state"`
+		System      bool              `json:"system"`
+		Scale       int               `json:"scale"`
+		HostName    string            `json:"hostname"`
+		ID          string            `json:"id"`
+		StackID     string            `json:"stackId"`
+		EnvID       string            `json:"environmentId"`
+		BaseType    string            `json:"basetype"`
+		Type        string            `json:"type"`
+		AgentState  string            `json:"agentState"`
+		Labels      map[string]string `json:"labels"`
+		// LaunchConfig for services
+		LaunchConfig *LaunchConfig `json:"launchConfig"`
 	} `json:"data"`
+}
+
+type LaunchConfig struct {
+	Labels map[string]string `json:"labels"`
 }
 
 // processMetrics - Collects the data from the API, returns data object
 func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch chan<- prometheus.Metric) error {
+	var filteredLabels map[string]string
 
 	// Metrics - range through the data object
 	for _, x := range data.Data {
-
 		// If system services have been ignored, the loop simply skips them
 		if hideSys == true && x.System == true {
 			continue
@@ -49,22 +56,20 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 			continue
 		}
 
-		log.Debug("Processing metrics for %s", endpoint)
+		log.Debugf("Processing metrics for %s", endpoint)
 
 		if endpoint == "hosts" {
+			filteredLabels = e.allowedLabels(x.Labels)
 			var s = x.HostName
 			if x.Name != "" {
 				s = x.Name
 			}
-			if err := e.setHostMetrics(s, x.State, x.AgentState); err != nil {
+			if err := e.setHostMetrics(s, x.State, x.AgentState, filteredLabels); err != nil {
 				log.Errorf("Error processing host metrics: %s", err)
 				log.Errorf("Attempt Failed to set %s, %s, [agent] %s ", x.HostName, x.State, x.AgentState)
-
 				continue
 			}
-
 		} else if endpoint == "stacks" {
-
 			// Used to create a map of stackID and stackName
 			// Later used as a dimension in service metrics
 			stackRef = storeStackRef(x.ID, x.Name)
@@ -74,9 +79,7 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 				log.Errorf("Attempt Failed to set %s, %s, %s, %t", x.Name, x.State, x.HealthState, x.System)
 				continue
 			}
-
 		} else if endpoint == "services" {
-
 			// Retrieves the stack Name from the previous values stored.
 			var stackName = retrieveStackRef(x.StackID)
 
@@ -84,15 +87,18 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 				log.Warnf("Failed to obtain stack_name for %s from the API", x.Name)
 			}
 
-			if err := e.setServiceMetrics(x.Name, stackName, x.State, x.HealthState, x.Scale); err != nil {
+			if x.LaunchConfig != nil && len(x.LaunchConfig.Labels) > 0 {
+				filteredLabels = e.allowedLabels(x.LaunchConfig.Labels)
+			}
+
+			if err := e.setServiceMetrics(x.Name, stackName, x.State, x.HealthState, x.Scale, filteredLabels); err != nil {
 				log.Errorf("Error processing service metrics: %s", err)
 				log.Errorf("Attempt Failed to set %s, %s, %s, %s, %d", x.Name, stackName, x.State, x.HealthState, x.Scale)
 				continue
 			}
 
-			e.setServiceMetrics(x.Name, stackName, x.State, x.HealthState, x.Scale)
+			e.setServiceMetrics(x.Name, stackName, x.State, x.HealthState, x.Scale, filteredLabels)
 		}
-
 	}
 
 	return nil
@@ -100,7 +106,6 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 
 // gatherData - Collects the data from thw API, invokes functions to transform that data into metrics
 func (e *Exporter) gatherData(rancherURL string, accessKey string, secretKey string, endpoint string, ch chan<- prometheus.Metric) (*Data, error) {
-
 	// Return the correct URL path
 	url := setEndpoint(rancherURL, endpoint)
 
@@ -113,14 +118,23 @@ func (e *Exporter) gatherData(rancherURL string, accessKey string, secretKey str
 		log.Error("Error getting JSON from endpoint ", endpoint)
 		return nil, err
 	}
-	log.Debugf("JSON Fetched for: "+endpoint+": ", data)
+	log.Debugf("JSON Fetched for: "+endpoint+": %+v", data)
 
 	return data, err
 }
 
+func (e *Exporter) allowedLabels(labels map[string]string) map[string]string {
+	result := make(map[string]string)
+	for name, val := range labels {
+		if e.labelsFilter.MatchString(name) {
+			result[name] = val
+		}
+	}
+	return result
+}
+
 // getJSON return json from server, return the formatted JSON
 func getJSON(url string, accessKey string, secretKey string, target interface{}) error {
-
 	start := time.Now()
 
 	// Counter for internal exporter metrics
@@ -161,7 +175,6 @@ func getJSON(url string, accessKey string, secretKey string, target interface{})
 
 // setEndpoint - Determines the correct URL endpoint to use, gives us backwards compatibility
 func setEndpoint(rancherURL string, component string) string {
-
 	var endpoint string
 
 	endpoint = (rancherURL + "/" + component + "/")
@@ -172,7 +185,6 @@ func setEndpoint(rancherURL string, component string) string {
 
 // storeStackRef stores the stackID and stack name for use as a label elsewhere
 func storeStackRef(stackID string, stackName string) map[string]string {
-
 	stackRef[stackID] = stackName
 
 	return stackRef
@@ -180,7 +192,6 @@ func storeStackRef(stackID string, stackName string) map[string]string {
 
 // retrieveStackRef returns the stack name, when sending the stackID
 func retrieveStackRef(stackID string) string {
-
 	for key, value := range stackRef {
 		if stackID == "" {
 			return "unknown"
