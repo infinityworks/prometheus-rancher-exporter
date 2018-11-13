@@ -156,8 +156,8 @@ func getJSON(url string, accessKey string, secretKey string, target interface{})
 		log.Error("Error Collecting JSON from API: ", err)
 	}
 
-	if !strings.Contains(resp.Status, "200") {
-		log.Error("Error returned from API: ", resp.Status)
+	if resp.StatusCode != 200 {
+		log.Error("Error Collecting JSON from API: ", resp.Status)
 	}
 
 	respFormatted := json.NewDecoder(resp.Body).Decode(target)
