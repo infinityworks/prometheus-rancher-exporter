@@ -7,7 +7,6 @@ import (
 // Resets the guageVecs back to 0
 // Ensures we start from a clean sheet
 func (e *Exporter) resetGaugeVecs() {
-
 	for _, m := range e.gaugeVecs {
 		m.Reset()
 	}
@@ -15,7 +14,6 @@ func (e *Exporter) resetGaugeVecs() {
 
 // Describe describes all the metrics ever exported by the Rancher exporter
 func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
-
 	for _, m := range e.gaugeVecs {
 		m.Describe(ch)
 	}
@@ -23,7 +21,6 @@ func (e *Exporter) Describe(ch chan<- *prometheus.Desc) {
 
 // Collect function, called on by Prometheus Client library
 func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
-
 	e.mutex.Lock() // To protect metrics from concurrent collects.
 	defer e.mutex.Unlock()
 
@@ -50,5 +47,4 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	for _, m := range e.gaugeVecs {
 		m.Collect(ch)
 	}
-
 }
