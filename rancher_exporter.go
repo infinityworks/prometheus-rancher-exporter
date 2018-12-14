@@ -29,6 +29,7 @@ var (
 	secretKey     = os.Getenv("CATTLE_SECRET_KEY")                // Optional - Secret Key for Rancher API
 	labelsFilter  = os.Getenv("LABELS_FILTER")                    // Optional - Filter for Rancher label names
 	logLevel      = getEnv("LOG_LEVEL", "info")                   // Optional - Set the logging level
+	resourceLimit = getEnv("API_LIMIT", "100")                    // Optional - Rancher API resource limit (default: 100)
 	hideSys, _    = strconv.ParseBool(getEnv("HIDE_SYS", "true")) // hideSys - Optional - Flag that indicates if the environment variable `HIDE_SYS` is set to a boolean true value
 )
 
@@ -88,7 +89,7 @@ func main() {
 	measure.Init()
 
 	// Register a new Exporter
-	exporter := newExporter(rancherURL, accessKey, secretKey, labelsFilterRegexp, hideSys)
+	exporter := newExporter(rancherURL, accessKey, secretKey, labelsFilterRegexp, hideSys, resourceLimit)
 
 	// Register Metrics from each of the endpoints
 	// This invokes the Collect method through the prometheus client libraries.
