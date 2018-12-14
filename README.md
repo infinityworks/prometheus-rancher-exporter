@@ -24,6 +24,7 @@ If you are using this externally to Rancher, or without the use of the labels to
 * `HIDE_SYS`            // If set to `true` then this hides any of Ranchers internal system services from being shown. *If used, ensure `false` is encapsulated with quotes e.g. `HIDE_SYS="false"`.
 * `LABELS_FILTER`       // Optional regular expression for filtering service and host labels, defaults to `^io.prometheus`.
 * `LOG_LEVEL`           // Optional - Set the logging level, defaults to Info.
+* `API_LIMIT`           // Optional - Rancher API resource limit (default: 100)
 
 ## Compatibility
 

@@ -105,9 +105,9 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 }
 
 // gatherData - Collects the data from thw API, invokes functions to transform that data into metrics
-func (e *Exporter) gatherData(rancherURL string, accessKey string, secretKey string, endpoint string, ch chan<- prometheus.Metric) (*Data, error) {
+func (e *Exporter) gatherData(rancherURL string, resourceLimit string, accessKey string, secretKey string, endpoint string, ch chan<- prometheus.Metric) (*Data, error) {
 	// Return the correct URL path
-	url := setEndpoint(rancherURL, endpoint)
+	url := setEndpoint(rancherURL, endpoint, resourceLimit)
 
 	// Create new data slice from Struct
 	var data = new(Data)
@@ -174,10 +174,10 @@ func getJSON(url string, accessKey string, secretKey string, target interface{})
 }
 
 // setEndpoint - Determines the correct URL endpoint to use, gives us backwards compatibility
-func setEndpoint(rancherURL string, component string) string {
+func setEndpoint(rancherURL string, component string, resourceLimit string) string {
 	var endpoint string
 
-	endpoint = (rancherURL + "/" + component + "/")
+	endpoint = (rancherURL + "/" + component + "/" + "?limit=" + resourceLimit)
 	endpoint = strings.Replace(endpoint, "v1", "v2-beta", 1)
 
 	return endpoint

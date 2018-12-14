@@ -29,7 +29,7 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	// Range over the pre-configured endpoints array
 	for _, p := range endpoints {
 
-		var data, err = e.gatherData(e.rancherURL, e.accessKey, e.secretKey, p, ch)
+		var data, err = e.gatherData(e.rancherURL, e.resourceLimit, e.accessKey, e.secretKey, p, ch)
 
 		if err != nil {
 			log.Error("Error getting JSON from URL ", p)
