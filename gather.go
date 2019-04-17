@@ -98,6 +98,12 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 			}
 
 			e.setServiceMetrics(x.Name, stackName, x.State, x.HealthState, x.Scale, filteredLabels)
+		} else if endpoint == "clusters" {
+			if err := e.setClusterMetrics(x.Name, x.State); err != nil {
+				log.Errorf("Error processing cluster metrics: %s", err)
+				log.Errorf("Attempt Failed to set %s, %s", x.Name, x.State)
+				continue
+			}
 		}
 	}
 

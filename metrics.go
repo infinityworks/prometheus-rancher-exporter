@@ -74,6 +74,13 @@ func addMetrics() map[string]*prometheus.GaugeVec {
 			Help:      "State of defined host agent as reported by the Rancher API",
 		}, []string{"name", "state", "labels"})
 
+	gaugeVecs["clusterState"] = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      ("cluster_state"),
+			Help:      "State of defined cluster as reported by the Rancher API",
+		}, []string{"name", "state"})
+
 	return gaugeVecs
 }
 
@@ -182,6 +189,22 @@ func (e *Exporter) setHostMetrics(name string, state, agentState string, labels 
 			"labels": labelsStr,
 		})
 		if agentState == y {
+			gauge.Set(1)
+		} else {
+			gauge.Set(0)
+		}
+	}
+	return nil
+}
+
+// setClusterMetrics - Logic to set the state of a system as a gauge metric
+func (e *Exporter) setClusterMetrics(name string, state string) error {
+	for _, y := range clusterStates {
+		gauge := e.gaugeVecs["clusterState"].With(prometheus.Labels{
+			"name":   name,
+			"state":  y,
+		})
+		if state == y {
 			gauge.Set(1)
 		} else {
 			gauge.Set(0)
