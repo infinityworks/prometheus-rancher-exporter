@@ -29,12 +29,23 @@ type Data struct {
 		Labels      map[string]string `json:"labels"`
 		// LaunchConfig for services
 		LaunchConfig *LaunchConfig `json:"launchConfig"`
+		ComponentStatuses []*ComponentStatuses `json:"componentStatuses"`
 	} `json:"data"`
 }
 
 type LaunchConfig struct {
 	Labels map[string]string `json:"labels"`
 }
+
+type ComponentStatuses struct {
+	Conditions []*Condition `json:"conditions"`
+	Name       string       `json:"name"`
+}
+
+type Condition struct {
+	Status string `json:"status"`
+}
+
 
 // processMetrics - Collects the data from the API, returns data object
 func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch chan<- prometheus.Metric) error {
@@ -99,7 +110,7 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 
 			e.setServiceMetrics(x.Name, stackName, x.State, x.HealthState, x.Scale, filteredLabels)
 		} else if endpoint == "clusters" {
-			if err := e.setClusterMetrics(x.Name, x.State); err != nil {
+			if err := e.setClusterMetrics(x.Name, x.State, x.ComponentStatuses); err != nil {
 				log.Errorf("Error processing cluster metrics: %s", err)
 				log.Errorf("Attempt Failed to set %s, %s", x.Name, x.State)
 				continue
