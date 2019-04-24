@@ -42,10 +42,10 @@ var (
 	serviceStates   = []string{"activating", "active", "canceled_upgrade", "canceling_upgrade", "deactivating", "finishing_upgrade", "inactive", "registering", "removed", "removing", "requested", "restarting", "rolling_back", "updating_active", "updating_inactive", "upgraded", "upgrading"}
 	healthStates    = []string{"healthy", "unhealthy", "initializing", "degraded", "started-once"}
 	componentStatus = []string{"True", "False", "Unknown"}
-	nodeStates      = []string{"activating", "active", "deactivating", "disconnected", "error", "erroring", "inactive", "provisioned", "purged", "purging", "reconnecting", "registering", "removed", "removing", "requested", "restoring", "updating_active", "updating_inactive"}
-	endpoints       = []string{"stacks", "services", "hosts", "clusters", "nodes"} // EndPoints the exporter will trawl
-	stackRef        = make(map[string]string)                 // Stores the StackID and StackName as a map, used to provide label dimensions to service metrics
-    clusterRef      = make(map[string]string)	                // Stores the ClusterID and ClusterName as a map, used to provide label dimensions to node metrics
+	nodeStates    = []string{"active", "cordoned", "degraded", "disconnected", "drained", "draining", "healthy", "initializing", "locked", "purged", "purging", "reconnecting", "reinitializing", "removed", "running", "unavailable", "unhealthy", "upgraded", "upgrading"}
+	endpoints     = []string{"stacks", "services", "hosts", "clusters", "nodes"} // EndPoints the exporter will trawl
+	stackRef      = make(map[string]string)                 // Stores the StackID and StackName as a map, used to provide label dimensions to service metrics
+        clusterRef    = make(map[string]string)	                // Stores the ClusterID and ClusterName as a map, used to provide label dimensions to node metrics
 )
 
 // getEnv - Allows us to supply a fallback option if nothing specified
