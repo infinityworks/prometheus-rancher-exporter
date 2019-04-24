@@ -226,7 +226,7 @@ func (e *Exporter) setClusterMetrics(name string, state string, statuses []*Comp
 	}
 
 	for _, status := range statuses {
-		for _, y := range healthyStatus{
+		for _, y := range componentStatus {
 			gauge := e.gaugeVecs["clusterComponentStatus"].With(prometheus.Labels{
 				"cluster_name":   name,
 				"status":  y,
