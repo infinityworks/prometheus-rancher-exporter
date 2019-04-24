@@ -27,8 +27,11 @@ type Data struct {
 		Type        string            `json:"type"`
 		AgentState  string            `json:"agentState"`
 		Labels      map[string]string `json:"labels"`
+		ClusterId   string            `json:"clusterId"`
+		NodeName    string            `json:"nodeName"`
 		// LaunchConfig for services
 		LaunchConfig *LaunchConfig `json:"launchConfig"`
+		// ComponentStatuses for clusters
 		ComponentStatuses []*ComponentStatuses `json:"componentStatuses"`
 	} `json:"data"`
 }
@@ -110,9 +113,23 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 
 			e.setServiceMetrics(x.Name, stackName, x.State, x.HealthState, x.Scale, filteredLabels)
 		} else if endpoint == "clusters" {
+			clusterRef = storeClusterRef(x.ID, x.Name)
 			if err := e.setClusterMetrics(x.Name, x.State, x.ComponentStatuses); err != nil {
 				log.Errorf("Error processing cluster metrics: %s", err)
 				log.Errorf("Attempt Failed to set %s, %s", x.Name, x.State)
+				continue
+			}
+		} else if endpoint == "nodes" {
+			// Retrieves the cluster Name from the previous values stored.
+			var clusterName = retrieveClusterRef(x.ClusterId)
+
+			if clusterName == "unknown" {
+				log.Warnf("Failed to obtain cluster_name for %s from the API", x.NodeName)
+			}
+
+			if err := e.setNodeMetrics(x.NodeName, x.State, clusterName); err != nil {
+				log.Errorf("Error processing node metrics: %s", err)
+				log.Errorf("Attempt Failed to set %s, %s", x.NodeName, x.State)
 				continue
 			}
 		}
@@ -214,6 +231,27 @@ func retrieveStackRef(stackID string) string {
 			return "unknown"
 		} else if stackID == key {
 			log.Debugf("StackRef - Key is %s, Value is %s StackID is %s", key, value, stackID)
+			return value
+		}
+	}
+	// returns unknown if no match was found
+	return "unknown"
+}
+
+// storeClusterRef stores the clusterID and cluster name for use as a label elsewhere
+func storeClusterRef(clusterID string, clusterName string) map[string]string {
+	clusterRef[clusterID] = clusterName
+
+	return clusterRef
+}
+
+// retrieveClusterRef returns the cluster name, when sending the clusterID
+func retrieveClusterRef(clusterID string) string {
+	for key, value := range clusterRef {
+		if clusterID == "" {
+			return "unknown"
+		} else if clusterID == key {
+			log.Debugf("ClusterRef - Key is %s, Value is %s ClusterID is %s", key, value, clusterID)
 			return value
 		}
 	}
