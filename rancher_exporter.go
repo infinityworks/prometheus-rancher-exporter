@@ -46,8 +46,7 @@ var (
 	nodeStates      = []string{"active", "cordoned", "degraded", "disconnected", "drained", "draining", "healthy", "initializing", "locked", "purged", "purging", "reconnecting", "reinitializing", "removed", "running", "unavailable", "unhealthy", "upgraded", "upgrading"}
 	endpoints       = []string{"stacks", "services", "hosts", "clusters", "nodes"} // EndPoints the exporter will trawl
 	stackRef        = make(map[string]string)                 // Stores the StackID and StackName as a map, used to provide label dimensions to service metrics
-    clusterRef      = make(map[string]string)	                // Stores the ClusterID and ClusterName as a map, used to provide label dimensions to node metrics
-
+        clusterRef      = make(map[string]string)	                // Stores the ClusterID and ClusterName as a map, used to provide label dimensions to node metrics
 )
 
 var apiV3Flag = false
