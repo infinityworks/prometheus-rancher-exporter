@@ -6,12 +6,10 @@ import (
 	"os"
 	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/infinityworks/prometheus-rancher-exporter/measure"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (
@@ -69,9 +67,7 @@ func main() {
 	if rancherURL == "" {
 		log.Fatal("CATTLE_URL must be set and non-empty")
 	}
-	if strings.HasSuffix(rancherURL, "v3") || strings.HasSuffix(rancherURL, "v3/") {
-		apiV3Flag = true
-	}
+
 	if labelsFilter == "" {
 		labelsFilter = defaultLabelsFilter
 	}
