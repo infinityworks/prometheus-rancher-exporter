@@ -109,6 +109,41 @@ rancher_stack_state{name="rocket-chat",state="rolling_back"} 0
 rancher_stack_state{name="rocket-chat",state="updating_active"} 0
 rancher_stack_state{name="rocket-chat",state="upgraded"} 0
 rancher_stack_state{name="rocket-chat",state="upgrading"} 0
+# HELP rancher_node_state State of defined node as reported by Rancher
+# TYPE rancher_node_state gauge
+rancher_node_state{cluster_name="cluster_name",node_name="node_name",state="active"} 1
+rancher_node_state{cluster_name="cluster_name",node_name="node_name",state="cordoned"} 0
+rancher_node_state{cluster_name="cluster_name",node_name="node_name",state="drained"} 0
+rancher_node_state{cluster_name="cluster_name",node_name="node_name",state="draining"} 0
+rancher_node_state{cluster_name="cluster_name",node_name="node_name",state="provisioning"} 0
+rancher_node_state{cluster_name="cluster_name",node_name="node_name",state="registering"} 0
+rancher_node_state{cluster_name="cluster_name",node_name="node_name",state="unavailable"} 0
+# HELP rancher_cluster_component_status Component statuses of defined cluster as reported by Rancher
+# TYPE rancher_cluster_component_status gauge
+rancher_cluster_component_status{cluster_name="cluster_name",component_name="component_name",status="False"} 0
+rancher_cluster_component_status{cluster_name="cluster_name",component_name="component_name",status="True"} 1
+rancher_cluster_component_status{cluster_name="cluster_name",component_name="component_name",status="Unknown"} 0
+# HELP rancher_cluster_state State of defined cluster as reported by Rancher
+# TYPE gauge
+rancher_cluster_state{cluster_name="cluster_name",state="active"} 1
+rancher_cluster_state{cluster_name="cluster_name",state="cordoned"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="degraded"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="disconnected"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="drained"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="draining"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="healthy"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="initializing"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="locked"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="purged"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="purging"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="reconnecting"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="reinitializing"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="removed"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="running"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="unavailable"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="unhealthy"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="upgraded"} 0
+rancher_cluster_state{cluster_name="cluster_name",state="upgrading"} 0
 ```
 
 An example of the internal metrics to track the performance of the exporter, and useful as a basic example how to instrument your code.

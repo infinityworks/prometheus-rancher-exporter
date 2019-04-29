@@ -8,9 +8,8 @@ import (
 	"strconv"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/infinityworks/prometheus-rancher-exporter/measure"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (
@@ -35,13 +34,18 @@ var (
 
 // Predefined variables that are used throughout the exporter
 var (
-	agentStates   = []string{"activating", "active", "reconnecting", "disconnected", "disconnecting", "finishing-reconnect", "reconnected"}
-	hostStates    = []string{"activating", "active", "deactivating", "disconnected", "error", "erroring", "inactive", "provisioned", "purged", "purging", "reconnecting", "registering", "removed", "removing", "requested", "restoring", "updating_active", "updating_inactive"}
-	stackStates   = []string{"activating", "active", "canceled_upgrade", "canceling_upgrade", "error", "erroring", "finishing_upgrade", "removed", "removing", "requested", "restarting", "rolling_back", "updating_active", "upgraded", "upgrading"}
-	serviceStates = []string{"activating", "active", "canceled_upgrade", "canceling_upgrade", "deactivating", "finishing_upgrade", "inactive", "registering", "removed", "removing", "requested", "restarting", "rolling_back", "updating_active", "updating_inactive", "upgraded", "upgrading"}
-	healthStates  = []string{"healthy", "unhealthy", "initializing", "degraded", "started-once"}
-	endpoints     = []string{"stacks", "services", "hosts"} // EndPoints the exporter will trawl
-	stackRef      = make(map[string]string)                 // Stores the StackID and StackName as a map, used to provide label dimensions to service metrics
+	agentStates     = []string{"activating", "active", "reconnecting", "disconnected", "disconnecting", "finishing-reconnect", "reconnected"}
+	clusterStates   = []string{"active", "cordoned", "degraded", "disconnected", "drained", "draining", "healthy", "initializing", "locked", "purged", "purging", "reconnecting", "reinitializing", "removed", "running", "unavailable", "unhealthy", "upgraded", "upgrading"}
+	hostStates      = []string{"activating", "active", "deactivating", "disconnected", "error", "erroring", "inactive", "provisioned", "purged", "purging", "reconnecting", "registering", "removed", "removing", "requested", "restoring", "updating_active", "updating_inactive"}
+	stackStates     = []string{"activating", "active", "canceled_upgrade", "canceling_upgrade", "error", "erroring", "finishing_upgrade", "removed", "removing", "requested", "restarting", "rolling_back", "updating_active", "upgraded", "upgrading"}
+	serviceStates   = []string{"activating", "active", "canceled_upgrade", "canceling_upgrade", "deactivating", "finishing_upgrade", "inactive", "registering", "removed", "removing", "requested", "restarting", "rolling_back", "updating_active", "updating_inactive", "upgraded", "upgrading"}
+	healthStates    = []string{"healthy", "unhealthy", "initializing", "degraded", "started-once"}
+	componentStatus = []string{"True", "False", "Unknown"}
+	nodeStates      = []string{"active", "cordoned", "drained", "draining", "provisioning", "registering", "unavailable"}
+	endpoints       = []string{"stacks", "services", "hosts"} // EndPoints the exporter will trawl
+	endpointsV3     = []string{"clusters", "nodes"} // EndPoints the exporter will trawl]
+	stackRef        = make(map[string]string)                 // Stores the StackID and StackName as a map, used to provide label dimensions to service metrics
+	clusterRef      = make(map[string]string)	                // Stores the ClusterID and ClusterName as a map, used to provide label dimensions to node metrics
 )
 
 // getEnv - Allows us to supply a fallback option if nothing specified
