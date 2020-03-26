@@ -7,18 +7,13 @@ func setLogLevel(level string) {
 	switch level {
 	case "debug":
 		log.SetLevel(logrus.DebugLevel)
-		break
 	case "info":
 		log.SetLevel(logrus.InfoLevel)
-		break
 	case "warn":
 		log.SetLevel(logrus.WarnLevel)
-		break
 	case "fatal":
 		log.SetLevel(logrus.FatalLevel)
-		break
 	case "panic":
 		log.SetLevel(logrus.PanicLevel)
-		break
 	}
 }

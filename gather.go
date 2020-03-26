@@ -74,7 +74,7 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 	// Metrics - range through the data object
 	for _, x := range data.Data {
 		// If system services have been ignored, the loop simply skips them
-		if hideSys == true && x.System == true {
+		if hideSys && x.System {
 			continue
 		}
 
@@ -83,7 +83,7 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 		if dataType == "" {
 			dataType = x.Type
 		}
-		if checkMetric(endpoint, dataType) == false {
+		if !checkMetric(endpoint, dataType) {
 			continue
 		}
 
@@ -95,27 +95,16 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 			if x.Name != "" {
 				s = x.Name
 			}
-			if err := e.setHostStateMetrics(s, x.State, x.AgentState, filteredLabels); err != nil {
-				log.Errorf("Error processing host state metrics: %s", err)
-				log.Errorf("Attempt Failed to set %s, %s, [agent] %s ", x.HostName, x.State, x.AgentState)
-				continue
-			}
+			e.setHostStateMetrics(s, x.State, x.AgentState, filteredLabels)
 			if x.HostInfo != nil {
-				if err := e.setHostInfoMetrics(s, x.HostInfo, filteredLabels); err != nil {
-					log.Errorf("Error processing host info metrics: %s", err)
-					continue
-				}
+				e.setHostInfoMetrics(s, x.HostInfo, filteredLabels)
 			}
 		} else if endpoint == "stacks" {
 			// Used to create a map of stackID and stackName
 			// Later used as a dimension in service metrics
 			stackRef = storeStackRef(x.ID, x.Name)
 
-			if err := e.setStackMetrics(x.Name, x.State, x.HealthState, strconv.FormatBool(x.System)); err != nil {
-				log.Errorf("Error processing stack metrics: %s", err)
-				log.Errorf("Attempt Failed to set %s, %s, %s, %t", x.Name, x.State, x.HealthState, x.System)
-				continue
-			}
+			e.setStackMetrics(x.Name, x.State, x.HealthState, strconv.FormatBool(x.System))
 		} else if endpoint == "services" {
 			// Retrieves the stack Name from the previous values stored.
 			var stackName = retrieveStackRef(x.StackID)
@@ -128,20 +117,10 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 				filteredLabels = e.allowedLabels(x.LaunchConfig.Labels)
 			}
 
-			if err := e.setServiceMetrics(x.Name, stackName, x.State, x.HealthState, x.Scale, filteredLabels); err != nil {
-				log.Errorf("Error processing service metrics: %s", err)
-				log.Errorf("Attempt Failed to set %s, %s, %s, %s, %d", x.Name, stackName, x.State, x.HealthState, x.Scale)
-				continue
-			}
-
 			e.setServiceMetrics(x.Name, stackName, x.State, x.HealthState, x.Scale, filteredLabels)
 		} else if endpoint == "clusters" {
 			clusterRef = storeClusterRef(x.ID, x.Name)
-			if err := e.setClusterMetrics(x.Name, x.State, x.ComponentStatuses); err != nil {
-				log.Errorf("Error processing cluster metrics: %s", err)
-				log.Errorf("Attempt Failed to set %s, %s", x.Name, x.State)
-				continue
-			}
+			e.setClusterMetrics(x.Name, x.State, x.ComponentStatuses)
 		} else if endpoint == "nodes" {
 			// Retrieves the cluster Name from the previous values stored.
 			var clusterName = retrieveClusterRef(x.ClusterId)
@@ -150,11 +129,7 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 				log.Warnf("Failed to obtain cluster_name for %s from the API", x.NodeName)
 			}
 
-			if err := e.setNodeMetrics(x.NodeName, x.State, clusterName); err != nil {
-				log.Errorf("Error processing node metrics: %s", err)
-				log.Errorf("Attempt Failed to set %s, %s", x.NodeName, x.State)
-				continue
-			}
+			e.setNodeMetrics(x.NodeName, x.State, clusterName)
 		}
 	}
 

@@ -134,7 +134,7 @@ func checkMetric(endpoint string, baseType string) bool {
 }
 
 // setServiceMetrics - Logic to set the state of a system as a gauge metric
-func (e *Exporter) setServiceMetrics(name string, stack string, state string, health string, scale int, labels map[string]string) error {
+func (e *Exporter) setServiceMetrics(name string, stack string, state string, health string, scale int, labels map[string]string) {
 	labelsStr := joinLabels(labels)
 	e.gaugeVecs["servicesScale"].With(prometheus.Labels{
 		"name":       name,
@@ -167,11 +167,10 @@ func (e *Exporter) setServiceMetrics(name string, stack string, state string, he
 			gauge.Set(0)
 		}
 	}
-	return nil
 }
 
 // setStackMetrics - Logic to set the state of a system as a gauge metric
-func (e *Exporter) setStackMetrics(name string, state string, health string, system string) error {
+func (e *Exporter) setStackMetrics(name string, state string, health string, system string) {
 	for _, y := range healthStates {
 		gauge := e.gaugeVecs["stacksHealth"].With(prometheus.Labels{
 			"name":         name,
@@ -196,10 +195,9 @@ func (e *Exporter) setStackMetrics(name string, state string, health string, sys
 			gauge.Set(0)
 		}
 	}
-	return nil
 }
 
-func (e *Exporter) setHostInfoMetrics(name string, hi *HostInfo, labels map[string]string) error {
+func (e *Exporter) setHostInfoMetrics(name string, hi *HostInfo, labels map[string]string) {
 	labelsStr := joinLabels(labels)
 
 	e.gaugeVecs["hostCPUCount"].With(prometheus.Labels{
@@ -219,11 +217,10 @@ func (e *Exporter) setHostInfoMetrics(name string, hi *HostInfo, labels map[stri
 			"mountpoint": mountName,
 		}).Set(float64(mountPoint.Total))
 	}
-	return nil
 }
 
 // setHostStateMetrics - Logic to set the state of a system as a gauge metric
-func (e *Exporter) setHostStateMetrics(name string, state, agentState string, labels map[string]string) error {
+func (e *Exporter) setHostStateMetrics(name string, state, agentState string, labels map[string]string) {
 	labelsStr := joinLabels(labels)
 	for _, y := range hostStates {
 		gauge := e.gaugeVecs["hostsState"].With(prometheus.Labels{
@@ -249,11 +246,10 @@ func (e *Exporter) setHostStateMetrics(name string, state, agentState string, la
 			gauge.Set(0)
 		}
 	}
-	return nil
 }
 
 // setClusterMetrics - Logic to set the state of a system as a gauge metric
-func (e *Exporter) setClusterMetrics(name string, state string, statuses []*ComponentStatuses) error {
+func (e *Exporter) setClusterMetrics(name string, state string, statuses []*ComponentStatuses) {
 	for _, y := range clusterStates {
 		gauge := e.gaugeVecs["clusterState"].With(prometheus.Labels{
 			"cluster_name": name,
@@ -280,11 +276,10 @@ func (e *Exporter) setClusterMetrics(name string, state string, statuses []*Comp
 			}
 		}
 	}
-	return nil
 }
 
 // setNodeMetrics - Logic to set the state of a system as a gauge metric
-func (e *Exporter) setNodeMetrics(nodeName string, state string, clusterName string) error {
+func (e *Exporter) setNodeMetrics(nodeName string, state string, clusterName string) {
 	for _, y := range nodeStates {
 		gauge := e.gaugeVecs["nodeState"].With(prometheus.Labels{
 			"cluster_name": clusterName,
@@ -297,6 +292,4 @@ func (e *Exporter) setNodeMetrics(nodeName string, state string, clusterName str
 			gauge.Set(0)
 		}
 	}
-
-	return nil
 }
