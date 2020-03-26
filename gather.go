@@ -44,6 +44,7 @@ type HostInfo struct {
 	} `json:"cpuInfo"`
 	MemoryInfo struct {
 		MemTotal int `json:"memTotal"`
+		MemFree  int `json:memFree`
 	} `json:"memoryInfo"`
 	DiskInfo struct {
 		MountPoints map[string]MountPoint `json:"mountPoints"`
@@ -52,6 +53,7 @@ type HostInfo struct {
 
 type MountPoint struct {
 	Total int `json:"total"`
+	Used  int `json:used`
 }
 
 type LaunchConfig struct {

@@ -85,11 +85,23 @@ func addMetrics() map[string]*prometheus.GaugeVec {
 			Name:      "host_mem_total",
 			Help:      "Total memory size in MB",
 		}, []string{"name", "labels"})
+	gaugeVecs["hostMemFree"] = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "host_mem_free",
+			Help:      "Free memory size in MB",
+		}, []string{"name", "labels"})
 	gaugeVecs["hostMountPointTotal"] = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: namespace,
 			Name:      "host_mountpoint_total",
 			Help:      "Total size by mountpoint in MB",
+		}, []string{"name", "labels", "mountpoint"})
+	gaugeVecs["hostMountPointUsed"] = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      "host_mountpoint_used",
+			Help:      "Used size by mountpoint in MB",
 		}, []string{"name", "labels", "mountpoint"})
 
 	// Cluster Metrics
@@ -210,12 +222,23 @@ func (e *Exporter) setHostInfoMetrics(name string, hi *HostInfo, labels map[stri
 		"labels": labelsStr,
 	}).Set(float64(hi.MemoryInfo.MemTotal))
 
+	e.gaugeVecs["hostMemFree"].With(prometheus.Labels{
+		"name":   name,
+		"labels": labelsStr,
+	}).Set(float64(hi.MemoryInfo.MemFree))
+
 	for mountName, mountPoint := range hi.DiskInfo.MountPoints {
 		e.gaugeVecs["hostMountPointTotal"].With(prometheus.Labels{
 			"name":       name,
 			"labels":     labelsStr,
 			"mountpoint": mountName,
 		}).Set(float64(mountPoint.Total))
+
+		e.gaugeVecs["hostMountPointUsed"].With(prometheus.Labels{
+			"name":       name,
+			"labels":     labelsStr,
+			"mountpoint": mountName,
+		}).Set(float64(mountPoint.Used))
 	}
 }
 
