@@ -27,7 +27,7 @@ type Data struct {
 		Type        string            `json:"type"`
 		AgentState  string            `json:"agentState"`
 		Labels      map[string]string `json:"labels"`
-		ClusterId   string            `json:"clusterId"`
+		ClusterID   string            `json:"clusterId"`
 		NodeName    string            `json:"nodeName"`
 		// HostInfo for hosts
 		HostInfo *HostInfo `json:"info"`
@@ -125,7 +125,7 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 			e.setClusterMetrics(x.Name, x.State, x.ComponentStatuses)
 		} else if endpoint == "nodes" {
 			// Retrieves the cluster Name from the previous values stored.
-			var clusterName = retrieveClusterRef(x.ClusterId)
+			var clusterName = retrieveClusterRef(x.ClusterID)
 
 			if clusterName == "unknown" {
 				log.Warnf("Failed to obtain cluster_name for %s from the API", x.NodeName)

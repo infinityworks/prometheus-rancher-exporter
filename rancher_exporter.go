@@ -103,14 +103,17 @@ func main() {
 	// Setup HTTP handler
 	http.Handle(metricsPath, promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`<html>
+		_, err := w.Write([]byte(`<html>
 		                <head><title>Rancher exporter</title></head>
 		                <body>
 		                   <h1>rancher exporter</h1>
 		                   <p><a href='` + metricsPath + `'>Metrics</a></p>
 		                   </body>
 		                </html>
-		              `))
+					  `))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	})
 	log.Printf("Starting Server on port %s and path %s", listenAddress, metricsPath)
 	log.Fatal(http.ListenAndServe(listenAddress, nil))
