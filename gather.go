@@ -29,11 +29,29 @@ type Data struct {
 		Labels      map[string]string `json:"labels"`
 		ClusterId   string            `json:"clusterId"`
 		NodeName    string            `json:"nodeName"`
+		// HostInfo for hosts
+		HostInfo *HostInfo `json:"info"`
 		// LaunchConfig for services
 		LaunchConfig *LaunchConfig `json:"launchConfig"`
 		// ComponentStatuses for clusters
 		ComponentStatuses []*ComponentStatuses `json:"componentStatuses"`
 	} `json:"data"`
+}
+
+type HostInfo struct {
+	CPUInfo struct {
+		Count int `json:"count"`
+	} `json:"cpuInfo"`
+	MemoryInfo struct {
+		MemTotal int `json:"memTotal"`
+	} `json:"memoryInfo"`
+	DiskInfo struct {
+		MountPoints map[string]MountPoint `json:"mountPoints"`
+	} `json:"diskInfo"`
+}
+
+type MountPoint struct {
+	Total int `json:"total"`
 }
 
 type LaunchConfig struct {
@@ -48,7 +66,6 @@ type ComponentStatuses struct {
 type Condition struct {
 	Status string `json:"status"`
 }
-
 
 // processMetrics - Collects the data from the API, returns data object
 func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch chan<- prometheus.Metric) error {
@@ -78,10 +95,16 @@ func (e *Exporter) processMetrics(data *Data, endpoint string, hideSys bool, ch 
 			if x.Name != "" {
 				s = x.Name
 			}
-			if err := e.setHostMetrics(s, x.State, x.AgentState, filteredLabels); err != nil {
-				log.Errorf("Error processing host metrics: %s", err)
+			if err := e.setHostStateMetrics(s, x.State, x.AgentState, filteredLabels); err != nil {
+				log.Errorf("Error processing host state metrics: %s", err)
 				log.Errorf("Attempt Failed to set %s, %s, [agent] %s ", x.HostName, x.State, x.AgentState)
 				continue
+			}
+			if x.HostInfo != nil {
+				if err := e.setHostInfoMetrics(s, x.HostInfo, filteredLabels); err != nil {
+					log.Errorf("Error processing host info metrics: %s", err)
+					continue
+				}
 			}
 		} else if endpoint == "stacks" {
 			// Used to create a map of stackID and stackName

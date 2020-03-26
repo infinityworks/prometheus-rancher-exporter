@@ -1,6 +1,6 @@
 package main
 
-import "github.com/Sirupsen/logrus"
+import "github.com/sirupsen/logrus"
 
 // setLogLevel - Sets the log level based on the passed argument.
 func setLogLevel(level string) {
