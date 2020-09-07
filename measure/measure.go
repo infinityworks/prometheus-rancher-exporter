@@ -1,8 +1,6 @@
 package measure
 
 import (
-	"time"
-
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -22,8 +20,6 @@ var (
 			Name: "function_count_totals",
 			Help: "total count of function calls",
 		}, []string{"pkg", "fnc"})
-
-	start = time.Now()
 )
 
 // Init registers the prometheus metrics for the measurement of the exporter itsself.

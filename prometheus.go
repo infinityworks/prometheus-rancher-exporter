@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
 	"strings"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Resets the guageVecs back to 0
@@ -27,14 +28,14 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 
 	e.resetGaugeVecs() // Clean starting point
 
-	var endpointOfApi []string
+	var endpointOfAPI []string
 	if strings.HasSuffix(rancherURL, "v3") || strings.HasSuffix(rancherURL, "v3/") {
-		endpointOfApi = endpointsV3
+		endpointOfAPI = endpointsV3
 	} else {
-		endpointOfApi = endpoints
+		endpointOfAPI = endpoints
 	}
 	// Range over the pre-configured endpoints array
-	for _, p := range endpointOfApi {
+	for _, p := range endpointOfAPI {
 
 		var data, err = e.gatherData(e.rancherURL, e.resourceLimit, e.accessKey, e.secretKey, p, ch)
 

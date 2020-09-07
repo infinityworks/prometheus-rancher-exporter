@@ -1,2 +1,7 @@
-exporter
-.idea/
+# IDE
+.idea
+.vscode
+
+# Binary
+/exporter
+/prometheus-rancher-exporter

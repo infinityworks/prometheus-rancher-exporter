@@ -7,10 +7,10 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/infinityworks/prometheus-rancher-exporter/measure"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -44,9 +44,9 @@ var (
 	componentStatus = []string{"True", "False", "Unknown"}
 	nodeStates      = []string{"active", "cordoned", "drained", "draining", "provisioning", "registering", "unavailable"}
 	endpoints       = []string{"stacks", "services", "hosts"} // EndPoints the exporter will trawl
-	endpointsV3     = []string{"clusters", "nodes"} // EndPoints the exporter will trawl]
+	endpointsV3     = []string{"clusters", "nodes"}           // EndPoints the exporter will trawl]
 	stackRef        = make(map[string]string)                 // Stores the StackID and StackName as a map, used to provide label dimensions to service metrics
-	clusterRef      = make(map[string]string)	                // Stores the ClusterID and ClusterName as a map, used to provide label dimensions to node metrics
+	clusterRef      = make(map[string]string)                 // Stores the ClusterID and ClusterName as a map, used to provide label dimensions to node metrics
 )
 
 // getEnv - Allows us to supply a fallback option if nothing specified
@@ -103,14 +103,17 @@ func main() {
 	// Setup HTTP handler
 	http.Handle(metricsPath, promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`<html>
+		_, err := w.Write([]byte(`<html>
 		                <head><title>Rancher exporter</title></head>
 		                <body>
 		                   <h1>rancher exporter</h1>
 		                   <p><a href='` + metricsPath + `'>Metrics</a></p>
 		                   </body>
 		                </html>
-		              `))
+					  `))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	})
 	log.Printf("Starting Server on port %s and path %s", listenAddress, metricsPath)
 	log.Fatal(http.ListenAndServe(listenAddress, nil))

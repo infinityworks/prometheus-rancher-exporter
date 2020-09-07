@@ -35,6 +35,46 @@ rancher_service_health_status{health_state="unhealthy",name="rocketchat",stack_n
 rancher_service_scale{name="hubot",stack_name="rocket-chat"} 1
 rancher_service_scale{name="mongo",stack_name="rocket-chat"} 1
 rancher_service_scale{name="rocketchat",stack_name="rocket-chat"} 1
+# HELP rancher_host_cpu_count Number of CPU Cores on host
+# TYPE rancher_host_cpu_count gauge
+rancher_host_cpu_count{labels="",name="testhost-1"} 2
+rancher_host_cpu_count{labels="",name="testhost-2"} 2
+rancher_host_cpu_count{labels="",name="testhost-3"} 8
+rancher_host_cpu_count{labels="",name="testhost-4"} 4
+rancher_host_cpu_count{labels="",name="testhost-5"} 6
+rancher_host_cpu_count{labels="",name="testhost-6"} 12
+# HELP rancher_host_mem_free Free memory size in MB
+# TYPE rancher_host_mem_free gauge
+rancher_host_mem_free{labels="",name="testhost-1"} 3452
+rancher_host_mem_free{labels="",name="testhost-2"} 3043
+rancher_host_mem_free{labels="",name="testhost-3"} 315
+rancher_host_mem_free{labels="",name="testhost-4"} 3338
+rancher_host_mem_free{labels="",name="testhost-5"} 4038
+rancher_host_mem_free{labels="",name="testhost-6"} 3410
+# HELP rancher_host_mem_total Total memory size in MB
+# TYPE rancher_host_mem_total gauge
+rancher_host_mem_total{labels="",name="testhost-1"} 3951
+rancher_host_mem_total{labels="",name="testhost-2"} 3951
+rancher_host_mem_total{labels="",name="testhost-3"} 3951
+rancher_host_mem_total{labels="",name="testhost-4"} 7983
+rancher_host_mem_total{labels="",name="testhost-5"} 7983
+rancher_host_mem_total{labels="",name="testhost-6"} 7983
+# HELP rancher_host_mountpoint_total Total size by mountpoint in MB
+# TYPE rancher_host_mountpoint_total gauge
+rancher_host_mountpoint_total{labels="",mountpoint="/dev/mapper/dck--template--ubuntu16--vg-root",name="testhost-1"} 18538
+rancher_host_mountpoint_total{labels="",mountpoint="/dev/mapper/dck--template--ubuntu16--vg-root",name="testhost-2"} 18538
+rancher_host_mountpoint_total{labels="",mountpoint="/dev/mapper/dck--template--ubuntu16--vg-root",name="testhost-3"} 18538
+rancher_host_mountpoint_total{labels="",mountpoint="/dev/mapper/dck--template--ubuntu16--vg-root",name="testhost-4"} 18538
+rancher_host_mountpoint_total{labels="",mountpoint="/dev/mapper/dck--template--ubuntu16--vg-root",name="testhost-5"} 18538
+rancher_host_mountpoint_total{labels="",mountpoint="/dev/mapper/dck--template--ubuntu16--vg-root",name="testhost-6"} 7380
+# HELP rancher_host_mountpoint_used Used size by mountpoint in MB
+# TYPE rancher_host_mountpoint_used gauge
+rancher_host_mountpoint_used{labels="",mountpoint="/dev/mapper/dck--template--ubuntu16--vg-root",name="testhost-1"} 11634
+rancher_host_mountpoint_used{labels="",mountpoint="/dev/mapper/dck--template--ubuntu16--vg-root",name=name="testhost-2"} 11215
+rancher_host_mountpoint_used{labels="",mountpoint="/dev/mapper/dck--template--ubuntu16--vg-root",name="testhost-3"} 8439
+rancher_host_mountpoint_used{labels="",mountpoint="/dev/mapper/dck--template--ubuntu16--vg-root",name="testhost-4"} 7177
+rancher_host_mountpoint_used{labels="",mountpoint="/dev/mapper/dck--template--ubuntu16--vg-root",name="testhost-5"} 8471
+rancher_host_mountpoint_used{labels="",mountpoint="/dev/mapper/dck--template--ubuntu16--vg-root",name="testhost-6"} 4015
 # HELP rancher_service_state State of the service, as reported by the Rancher API
 # TYPE rancher_service_state gauge
 rancher_service_state{name="hubot",stack_name="rocket-chat",state="activating"} 0
