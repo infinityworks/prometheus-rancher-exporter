@@ -2,6 +2,10 @@
 
 Exposes the health of Stacks / Services and Hosts from the Rancher API, to a Prometheus compatible endpoint.
 
+```
+!!!!This repository is now deprecated, feel free to fork.!!!
+```
+
 
 ## Description
 
